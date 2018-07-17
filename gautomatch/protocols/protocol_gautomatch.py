@@ -34,8 +34,9 @@ from pyworkflow.em.constants import RELATION_CTF
 from pyworkflow.utils.properties import Message
 from pyworkflow.protocol import STEPS_PARALLEL
 
-from convert import (readSetOfCoordinates, runGautomatch, getProgram,
-                     writeDefectsFile, writeMicCoords)
+import gautomatch
+from gautomatch.convert import (readSetOfCoordinates, writeDefectsFile,
+                                writeMicCoords)
 
 # Option for input micrographs for wizard
 MICS_ALL = 0
@@ -333,12 +334,12 @@ class ProtGautomatch(em.ProtParticlePickingAuto):
                 writeMicCoords(mic, badCoords.iterCoordinates(mic), fnCoords)
 
         # We convert the input micrograph on demand if not in .mrc
-        runGautomatch(micFnList,
-                      self._getReferencesFn(),
-                      self.getMicrographsDir(),
-                      args,
-                      env=self._getEnviron(),
-                      runJob=self.runJob)
+        gautomatch.Plugin.runGautomatch(micFnList,
+                                        self._getReferencesFn(),
+                                        self.getMicrographsDir(),
+                                        args,
+                                        env=self._getEnviron(),
+                                        runJob=self.runJob)
 
     def createOutputStep(self):
         pass
@@ -347,7 +348,7 @@ class ProtGautomatch(em.ProtParticlePickingAuto):
     def _validate(self):
         errors = []
         # Check that the program exists
-        program = getProgram()
+        program = gautomatch.Plugin.getProgram()
         if program is None:
             errors.append("Missing variables GAUTOMATCH and/or GAUTOMATCH_HOME")
         elif not os.path.exists(program):

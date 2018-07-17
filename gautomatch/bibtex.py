@@ -1,3 +1,4 @@
+# coding: latin-1
 # **************************************************************************
 # *
 # * Authors:     Grigory Sharov (sharov@igbmc.fr)
@@ -24,27 +25,22 @@
 # *
 # **************************************************************************
 """
-This EM module contains Gautomatch auto-picking protocol 
+
+@Article{Zhang2016b,
+  Title      = {},
+  Author     = {Zhang K.},
+  Journal    = {unpublished},
+  Year       = {},
+  Pages      = {},
+  Volume     = {},
+  Number     = {},
+  Abstract   = {},
+  Doi        = {},
+  Language   = {},
+  Note	     = {unpublished},
+  PubMedID   = {},
+  ISSN       = {},
+  Url        = {http://www.mrc-lmb.cam.ac.uk/kzhang/Gautomatch}
+}
+
 """
-
-_logo = "gautomatch_logo.png"
-GAUTOMATCH_HOME = 'GAUTOMATCH_HOME'
-
-from convert import getEnviron
-from bibtex import _bibtex # Load bibtex dict with references
-
-from protocol_gautomatch import ProtGautomatch
-from viewer import GautomatchViewer
-from wizard import *
-_environ = getEnviron()
-
-def validateInstallation():
-    """ This function will be used to check if package is properly installed."""
-    missingPaths = ["%s: %s" % (var, _environ[var])
-                    for var in [GAUTOMATCH_HOME]
-                    if not os.path.exists(_environ[var])]
-
-    if missingPaths:
-        return ["Missing variables:"] + missingPaths
-    else:
-        return [] # No errors

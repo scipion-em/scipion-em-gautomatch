@@ -1,9 +1,9 @@
 # **************************************************************************
 # *
 # * Authors:     Grigory Sharov (sharov@igbmc.fr)
-# *              J.M. De la Rosa Trevin (jmdelarosa@cnb.csic.es)
+# * Authors:     J.M. De la Rosa Trevin (delarosatrevin@scilifelab.se) [2]
 # *
-# * Unidad de  Bioinformatica of Centro Nacional de Biotecnologia , CSIC
+# * [2] SciLifeLab, Stockholm University
 # *
 # * This program is free software; you can redistribute it and/or modify
 # * it under the terms of the GNU General Public License as published by
@@ -30,9 +30,8 @@ This module implements the viewer for Gautomatch program
 
 from pyworkflow.protocol.params import *
 from pyworkflow.viewer import ProtocolViewer, DESKTOP_TKINTER, WEB_DJANGO
-from pyworkflow.em.packages.xmipp3.convert import *
-from pyworkflow.em.packages.xmipp3.viewer import launchSupervisedPickerGUI
-from protocol_gautomatch import ProtGautomatch
+
+from gautomatch.protocols import ProtGautomatch
 
 
 class GautomatchViewer(ProtocolViewer):
@@ -121,6 +120,8 @@ class GautomatchViewer(ProtocolViewer):
         writeSetOfMicrographs(micSet, micsFn)
         inTmpFolder = True
         view = []
+        # FIXME: Remove dependency from xmipp3 plugin
+        from xmipp3.viewer import launchSupervisedPickerGUI
 
         if param == 'doShowAutopick':
             self._convertCoords(micSet, tmpDir, coordsType='autopick')
@@ -164,4 +165,6 @@ class GautomatchViewer(ProtocolViewer):
         pwutils.createLink(coordsFnIn, coordsFnOut)
         coordSet = SetOfCoordinates(filename=coordsFnOut)
         coordSet.setMicrographs(micSet)
+        # FIXME: Remove dependency from xmipp3 plugin
+        from xmipp3.convert import writeSetOfCoordinates
         writeSetOfCoordinates(tmpDir, coordSet, ismanual=False)

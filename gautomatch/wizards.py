@@ -34,7 +34,7 @@ from pyworkflow.em.viewer import CoordinatesObjectView
 from pyworkflow.em.constants import *
 from pyworkflow.em import getSubsetByDefocus
 
-from protocol_gautomatch import ProtGautomatch
+from gautomatch.protocols import ProtGautomatch
 
 
 

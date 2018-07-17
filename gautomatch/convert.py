@@ -35,7 +35,6 @@ from collections import OrderedDict
 
 import pyworkflow.em as em
 import pyworkflow.em.metadata as md
-from pyworkflow.em.packages.gautomatch import GAUTOMATCH_HOME
 from pyworkflow.object import ObjectWrap
 import pyworkflow.utils as pwutils
 
@@ -190,60 +189,3 @@ def writeSetOfCoordinates(workDir, coordSet, isGlobal=False):
         micBase = pwutils.removeBaseExt(mic.getFileName())
         fnCoords = os.path.join(workDir, micBase + '_rubbish.star')
         writeMicCoords(mic, coordSet.iterCoordinates(mic), fnCoords)
-
-
-def getEnviron():
-    """ Return the environ settings to run gautomatch programs. """
-    environ = pwutils.Environ(os.environ)
-    # Take Scipion CUDA library path
-    cudaLib = environ.getFirst(('GAUTOMATCH_CUDA_LIB', 'CUDA_LIB'))
-    environ.addLibrary(cudaLib)
-
-    return environ
-
-
-def getProgram():
-    """ Return the program binary that will be used. """
-    if (not 'GAUTOMATCH' in os.environ or
-        not GAUTOMATCH_HOME in os.environ):
-        return None
-
-    return os.path.join(os.environ[GAUTOMATCH_HOME], 'bin',
-                        os.path.basename(os.environ['GAUTOMATCH']))
-
-
-def runGautomatch(micNameList, refStack, workDir, extraArgs, env=None,
-                  runJob=None):
-    """ Run Gautomatch with the given parameters.
-    If micrographs are not .mrc, they will be converted.
-    If runJob=None, it will use pwutils.runJob.
-    """
-    args = ''
-
-    ih = em.ImageHandler()
-
-    for micName in micNameList:
-        # We convert the input micrograph on demand if not in .mrc
-        outMic = os.path.join(workDir, pwutils.replaceBaseExt(micName, 'mrc'))
-        args += ' %s' % outMic
-        if micName.endswith('.mrc'):
-            pwutils.createLink(micName, outMic)
-        else:
-            ih.convert(micName, outMic)
-
-    if refStack is not None:
-        args += ' -T %s' % refStack
-
-    args += ' %s' % extraArgs
-
-    environ = env if env is not None else getEnviron()
-    if runJob is None:
-        pwutils.runJob(None, getProgram(), args, env=environ)
-    else:
-        runJob(getProgram(), args, env=environ)
-
-    for micName in micNameList:
-        # We convert the input micrograph on demand if not in .mrc
-        outMic = os.path.join(workDir, pwutils.replaceBaseExt(micName, 'mrc'))
-        # After picking we can remove the temporary file.
-        pwutils.cleanPath(outMic)
