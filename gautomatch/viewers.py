@@ -30,6 +30,7 @@ This module implements the viewer for Gautomatch program
 
 from pyworkflow.protocol.params import *
 from pyworkflow.viewer import ProtocolViewer, DESKTOP_TKINTER, WEB_DJANGO
+import pyworkflow.utils as pwutils
 
 from gautomatch.protocols import ProtGautomatch
 
@@ -117,11 +118,12 @@ class GautomatchViewer(ProtocolViewer):
             raise Exception('visualize: SetOfCoordinates has no micrographs set.')
 
         micsFn = pwutils.join(tmpDir, micSet.getName() + '_micrographs.xmd')
+        # FIXME: Remove dependency from xmipp3 plugin
+        from xmipp3.convert import writeSetOfMicrographs
+        from xmipp3.viewers import launchSupervisedPickerGUI
         writeSetOfMicrographs(micSet, micsFn)
         inTmpFolder = True
         view = []
-        # FIXME: Remove dependency from xmipp3 plugin
-        from xmipp3.viewer import launchSupervisedPickerGUI
 
         if param == 'doShowAutopick':
             self._convertCoords(micSet, tmpDir, coordsType='autopick')

@@ -30,9 +30,9 @@ from os.path import join, basename
 
 from pyworkflow.em import *
 from pyworkflow.tests import *
-from pyworkflow.em.packages.gautomatch.protocol_gautomatch import *
-
 import pyworkflow.utils as pwutils
+
+from gautomatch.protocols import *
 
 
 class TestGautomatchBase(BaseTest):
@@ -119,8 +119,10 @@ class TestGautomatchBase(BaseTest):
         cls.launchProtocol(protGM2)
         return protGM2
 
+
 class TestGautomatchAutomaticPicking(TestGautomatchBase):
-    """This class check if the protocol to pick the micrographs automatically by gautomatch works properly."""
+    """This class check if the protocol to pick the micrographs automatically
+    by gautomatch works properly."""
     @classmethod
     def setUpClass(cls):
         setupTestProject(cls)
@@ -132,3 +134,10 @@ class TestGautomatchAutomaticPicking(TestGautomatchBase):
     def testAutomaticPicking(self):
         self.runPicking1()
         self.runPicking2()
+
+
+if __name__ == "__main__":
+    suite = unittest.TestLoader().loadTestsFromTestCase(TestGautomatchAutomaticPicking)
+    suite = unittest.TestLoader().loadTestsFromName(
+        'test_protocols_gautomatch.TestGautomatchAutomaticPicking.testAutomaticPicking')
+    unittest.TextTestRunner(verbosity=2).run(suite)
