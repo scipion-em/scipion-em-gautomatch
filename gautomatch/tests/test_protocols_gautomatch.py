@@ -138,6 +138,4 @@ class TestGautomatchAutomaticPicking(TestGautomatchBase):
 
 if __name__ == "__main__":
     suite = unittest.TestLoader().loadTestsFromTestCase(TestGautomatchAutomaticPicking)
-    suite = unittest.TestLoader().loadTestsFromName(
-        'test_protocols_gautomatch.TestGautomatchAutomaticPicking.testAutomaticPicking')
     unittest.TextTestRunner(verbosity=2).run(suite)
