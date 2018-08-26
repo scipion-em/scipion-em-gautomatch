@@ -43,8 +43,8 @@ class Plugin(pyworkflow.em.Plugin):
 
     @classmethod
     def _defineVariables(cls):
-        cls._defineEmVar(GAUTOMATCH_HOME, 'gautomatch-0.53')
-        cls._defineVar(GAUTOMATCH, 'Gautomatch-v0.53_sm_20_cu8.0_x86_64')
+        cls._defineEmVar(GAUTOMATCH_HOME, 'gautomatch-0.56')
+        cls._defineVar(GAUTOMATCH, 'Gautomatch_v0.56_sm20_cu8.0')
 
     @classmethod
     def getEnviron(cls):
