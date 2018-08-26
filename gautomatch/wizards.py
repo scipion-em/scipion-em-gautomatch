@@ -1,8 +1,8 @@
 # **************************************************************************
 # *
-# * Authors:     Grigory Sharov (sharov@igbmc.fr)
+# * Authors:     Grigory Sharov (gsharov@mrc-lmb.cam.ac.uk)
 # *
-# * L'Institut de genetique et de biologie moleculaire et cellulaire (IGBMC)
+# * MRC Laboratory of Molecular Biology (MRC-LMB)
 # *
 # * This program is free software; you can redistribute it and/or modify
 # * it under the terms of the GNU General Public License as published by
@@ -25,6 +25,7 @@
 # **************************************************************************
 
 import os
+import sys
 
 import pyworkflow as pw
 import pyworkflow.em.wizard as emwiz
@@ -168,8 +169,7 @@ class GautomatchPickerWizard(emwiz.EmWizard):
         pickerConfig = os.path.join(coordsDir, 'picker.conf')
         f = open(pickerConfig, "w")
 
-        pickScript = pw.join('em', 'packages', 'gautomatch',
-                             'run_gautomatch.py')
+        pickScript = os.path.join(sys.path[0], 'run_gautomatch.py')
 
         # Let use the first selected gpu for the wizard
         pickCmd = prot.getArgs(threshold=False,

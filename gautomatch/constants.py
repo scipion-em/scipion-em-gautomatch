@@ -1,4 +1,3 @@
-# coding: latin-1
 # **************************************************************************
 # *
 # * Authors:     Grigory Sharov (gsharov@mrc-lmb.cam.ac.uk)
@@ -24,23 +23,13 @@
 # *  e-mail address 'scipion@cnb.csic.es'
 # *
 # **************************************************************************
-"""
 
-@article{Zhang2016b,
-  Title      = {},
-  Author     = {Zhang K.},
-  Journal    = {unpublished},
-  Year       = {},
-  Pages      = {},
-  Volume     = {},
-  Number     = {},
-  Abstract   = {},
-  Doi        = {},
-  Language   = {},
-  Note	     = {unpublished},
-  PubMedID   = {},
-  ISSN       = {},
-  Url        = {http://www.mrc-lmb.cam.ac.uk/kzhang/Gautomatch}
-}
+CUDA_LIB = 'CUDA_LIB'
 
-"""
+GAUTOMATCH = 'GAUTOMATCH'
+GAUTOMATCH_HOME = 'GAUTOMATCH_HOME'
+GAUTOMATCH_CUDA_LIB = 'GAUTOMATCH_CUDA_LIB'
+
+# Option for input micrographs for wizard
+MICS_ALL = 0
+MICS_SUBSET = 1

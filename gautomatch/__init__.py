@@ -1,8 +1,8 @@
 # **************************************************************************
 # *
-# * Authors:     Grigory Sharov (sharov@igbmc.fr)
+# * Authors:     Grigory Sharov (gsharov@mrc-lmb.cam.ac.uk)
 # *
-# * L'Institut de genetique et de biologie moleculaire et cellulaire (IGBMC)
+# * MRC Laboratory of Molecular Biology (MRC-LMB)
 # *
 # * This program is free software; you can redistribute it and/or modify
 # * it under the terms of the GNU General Public License as published by
@@ -23,71 +23,48 @@
 # *  e-mail address 'scipion@cnb.csic.es'
 # *
 # **************************************************************************
-"""
-This EM module contains Gautomatch auto-picking protocol 
-"""
 
 import os
+
 import pyworkflow.em
 import pyworkflow.utils as pwutils
 
+from .constants import *
+
 
 _logo = "gautomatch_logo.png"
-GAUTOMATCH_HOME = 'GAUTOMATCH_HOME'
+_references = ['Zhang2016b']
 
 
-# The following class is required for Scipion to detect this Python module
-# as a Scipion Plugin. It needs to specify the PluginMeta __metaclass__
-# Some function related to the underlying package binaries need to be
-# implemented
-class Plugin:
-    __metaclass__ = pyworkflow.em.PluginMeta
+class Plugin(pyworkflow.em.Plugin):
+    _homeVar = GAUTOMATCH_HOME
+    _pathVars = [GAUTOMATCH_HOME]
+    _supportedVersions = ['0.53', '0.56']
+
+    @classmethod
+    def _defineVariables(cls):
+        cls._defineEmVar(GAUTOMATCH_HOME, 'gautomatch-0.53')
+        cls._defineVar(GAUTOMATCH, 'Gautomatch-v0.53_sm_20_cu8.0_x86_64')
 
     @classmethod
     def getEnviron(cls):
         """ Return the environ settings to run Gautomatch programs. """
         environ = pwutils.Environ(os.environ)
         # Take Scipion CUDA library path
-        cudaLib = environ.getFirst(('GAUTOMATCH_CUDA_LIB', 'CUDA_LIB'))
+        cudaLib = environ.getFirst((GAUTOMATCH_CUDA_LIB, CUDA_LIB))
         environ.addLibrary(cudaLib)
 
         return environ
 
     @classmethod
-    def getActiveVersion(cls):
-        """ Return the version of the Gctf binary that is currently active. """
-        path = os.environ[GAUTOMATCH_HOME]
-        for v in cls.getSupportedVersions():
-            if v in path or v in os.path.realpath(path):
-                return v
-        return ''
-
-    @classmethod
-    def getSupportedVersions(cls):
-        """ Return the list of supported binary versions. """
-        return ['0.50', '1.06']
-
-    @classmethod
-    def validateInstallation(cls):
-        """ This function will be used to check if package is
-        properly installed."""
-        environ = cls.getEnviron()
-
-        missingPaths = ["%s: %s" % (var, environ[var])
-                        for var in [GAUTOMATCH_HOME]
-                        if not os.path.exists(environ[var])]
-
-        return (["Missing variables:"] + missingPaths) if missingPaths else []
-
-    @classmethod
     def getProgram(cls):
         """ Return the program binary that will be used. """
-        if (not 'GAUTOMATCH' in os.environ or
+        if (not GAUTOMATCH in os.environ or
             not GAUTOMATCH_HOME in os.environ):
             return None
 
         return os.path.join(os.environ[GAUTOMATCH_HOME], 'bin',
-                            os.path.basename(os.environ['GAUTOMATCH']))
+                            os.path.basename(os.environ[GAUTOMATCH]))
 
     @classmethod
     def runGautomatch(cls, micNameList, refStack, workDir, extraArgs, env=None,
@@ -126,3 +103,4 @@ class Plugin:
             # After picking we can remove the temporary file.
             pwutils.cleanPath(outMic)
 
+pyworkflow.em.Domain.registerPlugin(__name__)

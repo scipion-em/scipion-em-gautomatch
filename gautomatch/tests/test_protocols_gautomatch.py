@@ -1,9 +1,10 @@
 # **************************************************************************
 # *
-# * Authors:    Grigory Sharov (sharov@igbmc.fr)
-# *             J.M. De la Rosa Trevin (jmdelarosa@cnb.csic.es)
+# * Authors:     J.M. De la Rosa Trevin (delarosatrevin@scilifelab.se) [1]
+# * Authors:     Grigory Sharov (gsharov@mrc-lmb.cam.ac.uk) [2]
 # *
-# * Unidad de  Bioinformatica of Centro Nacional de Biotecnologia , CSIC
+# * [1] SciLifeLab, Stockholm University
+# * [2] MRC Laboratory of Molecular Biology (MRC-LMB)
 # *
 # * This program is free software; you can redistribute it and/or modify
 # * it under the terms of the GNU General Public License as published by
@@ -25,12 +26,10 @@
 # *
 # **************************************************************************
 
-import unittest, sys
-from os.path import join, basename
+import unittest
 
 from pyworkflow.em import *
 from pyworkflow.tests import *
-import pyworkflow.utils as pwutils
 
 from gautomatch.protocols import *
 

@@ -1,8 +1,8 @@
 # **************************************************************************
 # *
-# * Authors:     Grigory Sharov (sharov@igbmc.fr)
+# * Authors:     Grigory Sharov (gsharov@mrc-lmb.cam.ac.uk)
 # *
-# * L'Institut de genetique et de biologie moleculaire et cellulaire (IGBMC)
+# * MRC Laboratory of Molecular Biology (MRC-LMB)
 # *
 # * This program is free software; you can redistribute it and/or modify
 # * it under the terms of the GNU General Public License as published by
@@ -26,7 +26,6 @@
 
 import os
 
-from pyworkflow import VERSION_1_1
 import pyworkflow.utils as pwutils
 import pyworkflow.protocol.params as params
 import pyworkflow.em as em
@@ -37,10 +36,8 @@ from pyworkflow.protocol import STEPS_PARALLEL
 import gautomatch
 from gautomatch.convert import (readSetOfCoordinates, writeDefectsFile,
                                 writeMicCoords)
+from gautomatch.constants import MICS_ALL, MICS_SUBSET
 
-# Option for input micrographs for wizard
-MICS_ALL = 0
-MICS_SUBSET = 1
 
 
 class ProtGautomatch(em.ProtParticlePickingAuto):
@@ -50,7 +47,6 @@ class ProtGautomatch(em.ProtParticlePickingAuto):
     templates.
     """
     _label = 'auto-picking'
-    _lastUpdateVersion = VERSION_1_1
 
     def __init__(self, **kwargs):
         em.ProtParticlePickingAuto.__init__(self, **kwargs)
@@ -347,25 +343,6 @@ class ProtGautomatch(em.ProtParticlePickingAuto):
     # --------------------------- INFO functions ------------------------------
     def _validate(self):
         errors = []
-        # Check that the program exists
-        program = gautomatch.Plugin.getProgram()
-        if program is None:
-            errors.append("Missing variables GAUTOMATCH and/or GAUTOMATCH_HOME")
-        elif not os.path.exists(program):
-            errors.append("Binary '%s' does not exists.\n" % program)
-
-        # If there is any error at this point it is related to config variables
-        if errors:
-            errors.append("Check configuration file: "
-                          "~/.config/scipion/scipion.conf")
-            errors.append("and set GAUTOMATCH and GAUTOMATCH_HOME "
-                          "variables properly.")
-            if program is not None:
-                errors.append("Current values:")
-                errors.append("GAUTOMATCH_HOME = %s"
-                              % os.environ['GAUTOMATCH_HOME'])
-                errors.append("GAUTOMATCH = %s" % os.environ['GAUTOMATCH'])
-
         if not self.localAvgMin < self.localAvgMax:
             errors.append('Wrong values of local average cut-off!')
 
@@ -414,9 +391,6 @@ class ProtGautomatch(em.ProtParticlePickingAuto):
             methodsMsgs.append(Message.TEXT_NO_OUTPUT_CO)
 
         return methodsMsgs
-
-    def _citations(self):
-        return ['Zhang2016']
 
     # --------------------------- UTILS functions ------------------------------
     def readCoordsFromMics(self, workingDir, micList, coordSet):

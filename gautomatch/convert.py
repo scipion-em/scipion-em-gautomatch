@@ -1,9 +1,10 @@
 # **************************************************************************
 # *
-# * Authors:     J.M. De la Rosa Trevin (jmdelarosa@cnb.csic.es)
-# * Authors:     Grigory Sharov (sharov@igbmc.fr)
+# * Authors:     J.M. De la Rosa Trevin (delarosatrevin@scilifelab.se) [1]
+# * Authors:     Grigory Sharov (gsharov@mrc-lmb.cam.ac.uk) [2]
 # *
-# * Unidad de  Bioinformatica of Centro Nacional de Biotecnologia , CSIC
+# * [1] SciLifeLab, Stockholm University
+# * [2] MRC Laboratory of Molecular Biology (MRC-LMB)
 # *
 # * This program is free software; you can redistribute it and/or modify
 # * it under the terms of the GNU General Public License as published by
@@ -24,17 +25,14 @@
 # *  e-mail address 'scipion@cnb.csic.es'
 # *
 # **************************************************************************
-"""
-This module contains converter functions that will serve to:
-1. Write from base classes to Gautomatch specific files
-2. Read from Gautomatch files to base classes
-"""
 
 import os
 from collections import OrderedDict
 
 import pyworkflow.em as em
 import pyworkflow.em.metadata as md
+from pyworkflow.em.constants import NO_INDEX
+from pyworkflow.em.convert import ImageHandler
 from pyworkflow.object import ObjectWrap
 import pyworkflow.utils as pwutils
 
@@ -90,11 +88,19 @@ def rowToCoordinate(coordRow):
         if coord.hasAttribute('_rlnClassNumber'):
             coord._rlnClassNumber.increment()
 
-        # FIXME: THE FOLLOWING IS NOT CLEAN
-        try:
-            coord.setMicId(int(coordRow.getValue(md.RLN_MICROGRAPH_NAME)))
-        except Exception:
-            pass
+        micName = None
+
+        if coordRow.hasLabel(md.RLN_MICROGRAPH_ID):
+            micId = int(coordRow.getValue(md.RLN_MICROGRAPH_ID))
+            coord.setMicId(micId)
+            # If RLN_MICROGRAPH_NAME is not present, use the id as a name
+            micName = micId
+
+        if coordRow.hasLabel(md.RLN_MICROGRAPH_NAME):
+            micName = coordRow.getValue(md.RLN_MICROGRAPH_NAME)
+
+        coord.setMicName(micName)
+
     else:
         coord = None
 
@@ -111,7 +117,7 @@ def readSetOfCoordinates(workDir, micSet, coordSet, suffix=None):
         coordSet: the SetOfCoordinates that will be populated.
         suffix: input coord file suffix
     """
-    if suffix == None:
+    if suffix is None:
         suffix = '_automatch.star'
 
     for mic in micSet:
@@ -189,3 +195,123 @@ def writeSetOfCoordinates(workDir, coordSet, isGlobal=False):
         micBase = pwutils.removeBaseExt(mic.getFileName())
         fnCoords = os.path.join(workDir, micBase + '_rubbish.star')
         writeMicCoords(mic, coordSet.iterCoordinates(mic), fnCoords)
+
+
+def writeSetOfCoordinatesXmipp(posDir, coordSet, ismanual=True, scale=1):
+    """ Write a pos file on metadata format for each micrograph
+    on the coordSet.
+    Params:
+        posDir: the directory where the .pos files will be written.
+        coordSet: the SetOfCoordinates that will be read."""
+
+    boxSize = coordSet.getBoxSize() or 100
+    state = 'Manual' if ismanual else 'Supervised'
+
+    # Create a dictionary with the pos filenames for each micrograph
+    posDict = {}
+    for mic in coordSet.iterMicrographs():
+        micIndex, micFileName = mic.getLocation()
+        micName = os.path.basename(micFileName)
+
+        if micIndex != NO_INDEX:
+            micName = '%06d_at_%s' % (micIndex, micName)
+
+        posFn = pwutils.join(posDir, pwutils.replaceBaseExt(micName, "pos"))
+        posDict[mic.getObjId()] = posFn
+
+    f = None
+    lastMicId = None
+    c = 0
+
+    for coord in coordSet.iterItems(orderBy='_micId'):
+        micId = coord.getMicId()
+
+        if micId != lastMicId:
+            # we need to close previous opened file
+            if f:
+                f.close()
+                c = 0
+            f = openMd(posDict[micId], state)
+            lastMicId = micId
+        c += 1
+        if scale != 1:
+            x = coord.getX() * scale
+            y = coord.getY() * scale
+        else:
+            x = coord.getX()
+            y = coord.getY()
+        f.write(" %06d   1   %d  %d  %d   %06d\n"
+                % (coord.getObjId(), x, y, 1, micId))
+
+    if f:
+        f.close()
+
+    # Write config.xmd metadata
+    configFn = pwutils.join(posDir, 'config.xmd')
+    writeCoordsConfig(configFn, int(boxSize), state)
+
+    return posDict.values()
+
+
+def writeCoordsConfig(configFn, boxSize, state):
+    """ Write the config.xmd file needed for Xmipp picker.
+    Params:
+        configFn: The filename were to store the configuration.
+        boxSize: the box size in pixels for extraction.
+        state: picker state
+    """
+    # Write config.xmd metadata
+    print("writeCoordsConfig: state=", state)
+    mdata = md.MetaData()
+    # Write properties block
+    objId = mdata.addObject()
+    mdata.setValue(md.MDL_PICKING_PARTICLE_SIZE, int(boxSize), objId)
+    mdata.setValue(md.MDL_PICKING_STATE, state, objId)
+    mdata.write('properties@%s' % configFn)
+
+
+def openMd(fn, state='Manual'):
+    # We are going to write metadata directly to file to do it faster
+    f = open(fn, 'w')
+    ismanual = state == 'Manual'
+    block = 'data_particles' if ismanual else 'data_particles_auto'
+    s = """# XMIPP_STAR_1 *
+#
+data_header
+loop_
+ _pickingMicrographState
+%s
+%s
+loop_
+ _itemId
+ _enabled
+ _xcoor
+ _ycoor
+ _cost
+ _micrographId
+""" % (state, block)
+    f.write(s)
+    return f
+
+
+def writeSetOfMicrographs(micSet, filename):
+    """ Simplified function borrowed from xmipp. """
+    mdata = md.MetaData()
+
+    for img in micSet:
+        objId = mdata.addObject()
+        imgRow = md.Row()
+        imgRow.setValue(md.MDL_ITEM_ID, long(objId))
+
+        index, fname = img.getLocation()
+        fn = ImageHandler.locationToXmipp((index, fname))
+        imgRow.setValue(md.MDL_MICROGRAPH, fn)
+
+        if img.isEnabled():
+            enabled = 1
+        else:
+            enabled = -1
+        imgRow.setValue(md.MDL_ENABLED, enabled)
+        imgRow.writeToMd(mdata, objId)
+
+    mdata.write('Micrographs@%s' % filename)

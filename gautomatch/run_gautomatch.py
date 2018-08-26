@@ -27,7 +27,7 @@
 
 import sys
 
-from convert import runGautomatch
+import gautomatch
 
 
 if __name__ == '__main__':
@@ -36,4 +36,4 @@ if __name__ == '__main__':
     workDir = sys.argv[3]
     args = " ".join(sys.argv[4:])
 
-    runGautomatch([micName], refStack, workDir, args)
+    gautomatch.Plugin.runGautomatch([micName], refStack, workDir, args)

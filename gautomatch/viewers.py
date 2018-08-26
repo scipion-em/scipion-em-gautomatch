@@ -1,9 +1,10 @@
 # **************************************************************************
 # *
-# * Authors:     Grigory Sharov (sharov@igbmc.fr)
-# * Authors:     J.M. De la Rosa Trevin (delarosatrevin@scilifelab.se) [2]
+# * Authors:     J.M. De la Rosa Trevin (delarosatrevin@scilifelab.se) [1]
+# * Authors:     Grigory Sharov (gsharov@mrc-lmb.cam.ac.uk) [2]
 # *
-# * [2] SciLifeLab, Stockholm University
+# * [1] SciLifeLab, Stockholm University
+# * [2] MRC Laboratory of Molecular Biology (MRC-LMB)
 # *
 # * This program is free software; you can redistribute it and/or modify
 # * it under the terms of the GNU General Public License as published by
@@ -28,6 +29,7 @@
 This module implements the viewer for Gautomatch program
 """
 
+from pyworkflow.em.data import SetOfCoordinates
 from pyworkflow.protocol.params import *
 from pyworkflow.viewer import ProtocolViewer, DESKTOP_TKINTER, WEB_DJANGO
 import pyworkflow.utils as pwutils
@@ -118,9 +120,8 @@ class GautomatchViewer(ProtocolViewer):
             raise Exception('visualize: SetOfCoordinates has no micrographs set.')
 
         micsFn = pwutils.join(tmpDir, micSet.getName() + '_micrographs.xmd')
-        # FIXME: Remove dependency from xmipp3 plugin
-        from xmipp3.convert import writeSetOfMicrographs
-        from xmipp3.viewers import launchSupervisedPickerGUI
+        from .convert import writeSetOfMicrographs
+        from pyworkflow.em.showj import launchSupervisedPickerGUI
         writeSetOfMicrographs(micSet, micsFn)
         inTmpFolder = True
         view = []
@@ -167,6 +168,5 @@ class GautomatchViewer(ProtocolViewer):
         pwutils.createLink(coordsFnIn, coordsFnOut)
         coordSet = SetOfCoordinates(filename=coordsFnOut)
         coordSet.setMicrographs(micSet)
-        # FIXME: Remove dependency from xmipp3 plugin
-        from xmipp3.convert import writeSetOfCoordinates
-        writeSetOfCoordinates(tmpDir, coordSet, ismanual=False)
+        from .convert import writeSetOfCoordinatesXmipp
+        writeSetOfCoordinatesXmipp(tmpDir, coordSet, ismanual=False)
