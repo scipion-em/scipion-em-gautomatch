@@ -51,7 +51,8 @@ class TestGautomatchBase(BaseTest):
         return cls.protImportAvg
  
     @classmethod
-    def runImportMicrograph(cls, pattern, samplingRate, voltage, magnification, sphericalAberration):
+    def runImportMicrograph(cls, pattern, samplingRate, voltage,
+                            magnification, sphericalAberration):
         """ Run an Import micrograph protocol. """
         cls.protImport = cls.newProtocol(ProtImportMicrographs,
                                          objLabel='import mics (klh)', 
@@ -133,8 +134,3 @@ class TestGautomatchAutomaticPicking(TestGautomatchBase):
     def testAutomaticPicking(self):
         self.runPicking1()
         self.runPicking2()
-
-
-if __name__ == "__main__":
-    suite = unittest.TestLoader().loadTestsFromTestCase(TestGautomatchAutomaticPicking)
-    unittest.TextTestRunner(verbosity=2).run(suite)

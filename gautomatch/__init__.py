@@ -63,7 +63,7 @@ class Plugin(pyworkflow.em.Plugin):
             not GAUTOMATCH_HOME in os.environ):
             return None
 
-        return os.path.join(os.environ[GAUTOMATCH_HOME], 'bin',
+        return os.path.join(cls.getHome('bin'),
                             os.path.basename(os.environ[GAUTOMATCH]))
 
     @classmethod
@@ -102,5 +102,6 @@ class Plugin(pyworkflow.em.Plugin):
             outMic = os.path.join(workDir, pwutils.replaceBaseExt(micName, 'mrc'))
             # After picking we can remove the temporary file.
             pwutils.cleanPath(outMic)
+
 
 pyworkflow.em.Domain.registerPlugin(__name__)
