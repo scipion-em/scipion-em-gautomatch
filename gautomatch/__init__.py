@@ -47,6 +47,15 @@ class Plugin(pyworkflow.em.Plugin):
         cls._defineVar(GAUTOMATCH, 'Gautomatch-v0.53_sm_20_cu8.0_x86_64')
 
     @classmethod
+    def defineBinaries(cls, env):
+        env.addPackage('gautomatch', version='0.53',
+                       tar='Gautomatch_v0.53.tgz',
+                       default=True)
+
+        env.addPackage('gautomatch', version='0.56',
+                       tar='Gautomatch_v0.56.tgz')
+
+    @classmethod
     def getEnviron(cls):
         """ Return the environ settings to run Gautomatch programs. """
         environ = pwutils.Environ(os.environ)
