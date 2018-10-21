@@ -26,8 +26,6 @@
 # *
 # **************************************************************************
 
-import unittest
-
 from pyworkflow.em import *
 from pyworkflow.tests import *
 

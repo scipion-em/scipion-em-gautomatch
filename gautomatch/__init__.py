@@ -47,6 +47,15 @@ class Plugin(pyworkflow.em.Plugin):
         cls._defineVar(GAUTOMATCH, 'Gautomatch_v0.56_sm20_cu8.0')
 
     @classmethod
+    def defineBinaries(cls, env):
+        env.addPackage('gautomatch', version='0.53',
+                       tar='Gautomatch_v0.53.tgz',
+                       default=True)
+
+        env.addPackage('gautomatch', version='0.56',
+                       tar='Gautomatch_v0.56.tgz')
+
+    @classmethod
     def getEnviron(cls):
         """ Return the environ settings to run Gautomatch programs. """
         environ = pwutils.Environ(os.environ)
@@ -59,12 +68,7 @@ class Plugin(pyworkflow.em.Plugin):
     @classmethod
     def getProgram(cls):
         """ Return the program binary that will be used. """
-        if (not GAUTOMATCH in os.environ or
-            not GAUTOMATCH_HOME in os.environ):
-            return None
-
-        return os.path.join(cls.getHome('bin'),
-                            os.path.basename(os.environ[GAUTOMATCH]))
+        return os.path.join(cls.getHome('bin'), cls.getVar(GAUTOMATCH))
 
     @classmethod
     def runGautomatch(cls, micNameList, refStack, workDir, extraArgs, env=None,

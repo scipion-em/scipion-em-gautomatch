@@ -38,7 +38,7 @@ from gautomatch.protocols import ProtGautomatch
 
 
 class GautomatchViewer(ProtocolViewer):
-    """ Visualization of Gautomatch protocol. """
+    """ Visualization of Gautomatch results. """
 
     _environments = [DESKTOP_TKINTER, WEB_DJANGO]
     _targets = [ProtGautomatch]
