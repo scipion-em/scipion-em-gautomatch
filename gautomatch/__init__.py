@@ -33,7 +33,7 @@ from .constants import *
 
 
 _logo = "gautomatch_logo.png"
-_references = ['Zhang2016b']
+_references = ['Zhang']
 
 
 class Plugin(pyworkflow.em.Plugin):
