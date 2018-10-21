@@ -68,12 +68,7 @@ class Plugin(pyworkflow.em.Plugin):
     @classmethod
     def getProgram(cls):
         """ Return the program binary that will be used. """
-        if (not GAUTOMATCH in os.environ or
-            not GAUTOMATCH_HOME in os.environ):
-            return None
-
-        return os.path.join(os.environ[GAUTOMATCH_HOME], 'bin',
-                            os.path.basename(os.environ[GAUTOMATCH]))
+        return os.path.join(cls.getHome('bin'), cls.getVar(GAUTOMATCH))
 
     @classmethod
     def runGautomatch(cls, micNameList, refStack, workDir, extraArgs, env=None,

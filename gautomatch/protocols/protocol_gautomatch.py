@@ -335,7 +335,7 @@ class ProtGautomatch(em.ProtParticlePickingAuto):
                                         self._getReferencesFn(),
                                         self.getMicrographsDir(),
                                         args,
-                                        env=self._getEnviron(),
+                                        env=gautomatch.Plugin.getEnviron(),
                                         runJob=self.runJob)
 
     def createOutputStep(self):
