@@ -26,20 +26,16 @@
 # **************************************************************************
 """
 
-@article{Zhang2016b,
+@article{Zhang,
   Title      = {},
   Author     = {Zhang K.},
   Journal    = {unpublished},
-  Year       = {},
+  Year       = {unpublished},
   Pages      = {},
   Volume     = {},
   Number     = {},
-  Abstract   = {},
-  Doi        = {},
-  Language   = {},
+  Doi        = {http://www.mrc-lmb.cam.ac.uk/kzhang/Gautomatch},
   Note	     = {unpublished},
-  PubMedID   = {},
-  ISSN       = {},
   Url        = {http://www.mrc-lmb.cam.ac.uk/kzhang/Gautomatch}
 }
 

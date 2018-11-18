@@ -160,8 +160,12 @@ class GautomatchPickerWizard(emwiz.EmWizard):
         coordsDir = project.getTmpPath(micSet.getName())
         pwutils.cleanPath(coordsDir)
         pwutils.makePath(coordsDir)
-        refStack = os.path.join(coordsDir, 'references.mrcs')
-        prot.convertReferences(refStack)
+
+        if prot.inputReferences.get():
+            refStack = os.path.join(coordsDir, 'references.mrcs')
+            prot.convertReferences(refStack)
+        else:
+            refStack = None
 
         # Get current values of the properties
 #         micFn = os.path.join(coordsDir, 'micrographs.xmd')

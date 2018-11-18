@@ -33,7 +33,7 @@ from .constants import *
 
 
 _logo = "gautomatch_logo.png"
-_references = ['Zhang2016b']
+_references = ['Zhang']
 
 
 class Plugin(pyworkflow.em.Plugin):
@@ -102,7 +102,6 @@ class Plugin(pyworkflow.em.Plugin):
             runJob(cls.getProgram(), args, env=environ)
 
         for micName in micNameList:
-            # We convert the input micrograph on demand if not in .mrc
             outMic = os.path.join(workDir, pwutils.replaceBaseExt(micName, 'mrc'))
             # After picking we can remove the temporary file.
             pwutils.cleanPath(outMic)
