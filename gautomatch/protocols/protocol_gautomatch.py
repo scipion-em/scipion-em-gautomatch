@@ -363,8 +363,9 @@ class ProtGautomatch(em.ProtParticlePickingAuto):
 
     def _summary(self):
         summary = []
-        summary.append("Number of input micrographs: %d"
-                       % self.getInputMicrographs().getSize())
+        if self.getInputMicrographs() is not None:
+            summary.append("Number of input micrographs: %d"
+                           % self.getInputMicrographs().getSize())
         if (self.getOutputsSize() > 0):
             summary.append("Number of particles picked: %d"
                            % self.getCoords().getSize())
