@@ -121,7 +121,7 @@ class GautomatchViewer(ProtocolViewer):
 
         micsFn = pwutils.join(tmpDir, micSet.getName() + '_micrographs.xmd')
         from .convert import writeSetOfMicrographs
-        from pyworkflow.em.showj import launchSupervisedPickerGUI
+        from pyworkflow.em.viewers.showj import launchSupervisedPickerGUI
         writeSetOfMicrographs(micSet, micsFn)
         inTmpFolder = True
         view = []
