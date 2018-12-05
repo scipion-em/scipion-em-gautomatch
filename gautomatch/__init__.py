@@ -43,8 +43,8 @@ class Plugin(pyworkflow.em.Plugin):
 
     @classmethod
     def _defineVariables(cls):
-        cls._defineEmVar(GAUTOMATCH_HOME, 'gautomatch-0.53')
-        cls._defineVar(GAUTOMATCH, 'Gautomatch-v0.53_sm_20_cu8.0_x86_64')
+        cls._defineEmVar(GAUTOMATCH_HOME, 'gautomatch-0.56')
+        cls._defineVar(GAUTOMATCH, 'Gautomatch_v0.56_sm20_cu8.0')
 
     @classmethod
     def defineBinaries(cls, env):
@@ -68,7 +68,8 @@ class Plugin(pyworkflow.em.Plugin):
     @classmethod
     def getProgram(cls):
         """ Return the program binary that will be used. """
-        return os.path.join(cls.getHome('bin'), cls.getVar(GAUTOMATCH))
+        return os.path.join(cls.getHome('bin'),
+                            os.path.basename(cls.getVar(GAUTOMATCH)))
 
     @classmethod
     def runGautomatch(cls, micNameList, refStack, workDir, extraArgs, env=None,
@@ -105,5 +106,6 @@ class Plugin(pyworkflow.em.Plugin):
             outMic = os.path.join(workDir, pwutils.replaceBaseExt(micName, 'mrc'))
             # After picking we can remove the temporary file.
             pwutils.cleanPath(outMic)
+
 
 pyworkflow.em.Domain.registerPlugin(__name__)
