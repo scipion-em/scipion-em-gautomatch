@@ -98,7 +98,7 @@ class ProtGautomatch(em.ProtParticlePickingAuto):
                       condition='micrographsSelection==%d' % MICS_SUBSET,
                       label='CTF estimation',
                       help='Choose some CTF estimation related to the '
-                           'input micrographs to create the subset'
+                           'input micrographs to create the subset '
                            'by defocus values.')
 
         form.addParam('threshold', params.FloatParam, default=0.1,
