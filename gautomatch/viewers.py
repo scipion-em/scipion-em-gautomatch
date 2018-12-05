@@ -32,6 +32,7 @@ This module implements the viewer for Gautomatch program
 from pyworkflow.em.data import SetOfCoordinates
 from pyworkflow.protocol.params import *
 from pyworkflow.viewer import ProtocolViewer, DESKTOP_TKINTER, WEB_DJANGO
+from pyworkflow.em.viewers import ObjectView
 import pyworkflow.utils as pwutils
 
 from gautomatch.protocols import ProtGautomatch
