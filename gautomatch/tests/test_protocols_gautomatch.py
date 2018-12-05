@@ -49,7 +49,8 @@ class TestGautomatchBase(BaseTest):
         return cls.protImportAvg
  
     @classmethod
-    def runImportMicrograph(cls, pattern, samplingRate, voltage, magnification, sphericalAberration):
+    def runImportMicrograph(cls, pattern, samplingRate, voltage,
+                            magnification, sphericalAberration):
         """ Run an Import micrograph protocol. """
         cls.protImport = cls.newProtocol(ProtImportMicrographs,
                                          objLabel='import mics (klh)', 

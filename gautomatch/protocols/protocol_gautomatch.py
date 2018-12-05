@@ -224,6 +224,18 @@ class ProtGautomatch(em.ProtParticlePickingAuto):
         line.addParam('prehighPass', params.IntParam, default=1000,
                       label='Max')
 
+        if gautomatch.Plugin.getActiveVersion() != '0.53':
+            form.addParam('detectIce', params.BooleanParam, default=True,
+                          label='Detect ice/aggregates/carbon?')
+            form.addParam('templateNorm', params.IntParam, default=1,
+                          validators=[params.Range(1, 3, "value should be "
+                                                         "1, 2 or 3. ")],
+                          label='Template normalization type',
+                          help='Template normalization: 1, 2 or 3 allowed.')
+            form.addParam('doBandpass', params.BooleanParam, default=True,
+                          label='Do band-pass?',
+                          help='Choose No to skip band-pass filtering.')
+
         form.addSection(label='Exclusive picking')
         form.addParam('exclusive', params.BooleanParam, default=False,
                       label='Exclusive picking?',
@@ -490,6 +502,11 @@ class ProtGautomatch(em.ProtParticlePickingAuto):
         if self.preFilt:
             args += ' --do_pre_filter --pre_lp %d' % self.prelowPass
             args += ' --pre_hp %d' % self.prehighPass
+
+        if gautomatch.Plugin.getActiveVersion() != '0.53':
+            args += ' --detect_ice %d' % (1 if self.detectIce else 0)
+            args += ' --T_norm_type %d' % self.templateNorm.get()
+            args += ' --do_bandpass %d' % (1 if self.doBandpass else 0)
 
         if self.exclusive:
             if self.inputBadCoords.get():
