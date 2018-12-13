@@ -44,7 +44,7 @@ class Plugin(pyworkflow.em.Plugin):
     @classmethod
     def _defineVariables(cls):
         cls._defineEmVar(GAUTOMATCH_HOME, 'gautomatch-0.56')
-        cls._defineVar(GAUTOMATCH, 'Gautomatch_v0.56_sm20_cu8.0')
+        cls._defineVar(GAUTOMATCH, 'Gautomatch_v0.56_sm62_cu8.0')
 
     @classmethod
     def defineBinaries(cls, env):
