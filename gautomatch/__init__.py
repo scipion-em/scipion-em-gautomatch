@@ -49,11 +49,11 @@ class Plugin(pyworkflow.em.Plugin):
     @classmethod
     def defineBinaries(cls, env):
         env.addPackage('gautomatch', version='0.53',
-                       tar='Gautomatch_v0.53.tgz',
-                       default=True)
+                       tar='Gautomatch_v0.53.tgz')
 
         env.addPackage('gautomatch', version='0.56',
-                       tar='Gautomatch_v0.56.tgz')
+                       tar='Gautomatch_v0.56.tgz',
+                       default=True)
 
     @classmethod
     def getEnviron(cls):
