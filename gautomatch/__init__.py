@@ -52,7 +52,7 @@ class Plugin(pyworkflow.em.Plugin):
                        tar='Gautomatch_v0.53.tgz')
 
         env.addPackage('gautomatch', version='0.56',
-                       tar='Gautomatch_v0.56.tgz',
+                       tar='gautomatch_v0.56.tgz',
                        default=True)
 
     @classmethod
