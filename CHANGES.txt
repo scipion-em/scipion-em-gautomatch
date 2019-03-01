@@ -1,3 +1,4 @@
+1.0.4 - Include protocol.conf to create the source distribution
 1.0.3 - Fix binary path, add protocols.conf
 1.0.2 - Fix getProgram and environ
 1.0.0 - First version of the plugin
