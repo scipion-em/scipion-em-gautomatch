@@ -173,7 +173,7 @@ class GautomatchPickerWizard(emwiz.EmWizard):
         pickerConfig = os.path.join(coordsDir, 'picker.conf')
         f = open(pickerConfig, "w")
 
-        pickScript = os.path.join(sys.path[0], 'run_gautomatch.py')
+        pickScript = os.path.join(os.path.dirname(__file__), 'run_gautomatch.py')
 
         # Let use the first selected gpu for the wizard
         pickCmd = prot.getArgs(threshold=False,

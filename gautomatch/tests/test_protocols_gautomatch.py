@@ -85,7 +85,6 @@ class TestGautomatchBase(BaseTest):
         cls.launchProtocol(cls.protImportCoords)
         return cls.protImportCoords
 
-    @classmethod
     def runPicking1(cls):
         """ Run a particle picking. """
         protGM = ProtGautomatch(objLabel='Gautomatch auto-picking (klh)',
@@ -98,9 +97,9 @@ class TestGautomatchBase(BaseTest):
         protGM.inputMicrographs.set(cls.protImportMics.outputMicrographs)
         protGM.inputReferences.set(cls.protImportAvgs.outputAverages)
         cls.launchProtocol(protGM)
+        cls.assertSetSize(protGM.getCoords(), msg='Picking1 didn\'t generate output coordinates')
         return protGM
 
-    @classmethod
     def runPicking2(cls):
         """ Run a particle picking with excludsive options. """
         protGM2 = ProtGautomatch(objLabel='Gautomatch auto-picking 2 (klh)',
@@ -115,6 +114,7 @@ class TestGautomatchBase(BaseTest):
         protGM2.inputReferences.set(cls.protImportAvgs.outputAverages)
         protGM2.inputBadCoords.set(cls.protImportCoords.outputCoordinates)
         cls.launchProtocol(protGM2)
+        cls.assertSetSize(protGM2.getCoords(), msg='Picking2 didn\'t generate output coordinates ')
         return protGM2
 
 
