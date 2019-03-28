@@ -1,3 +1,5 @@
+1.0.5:
+    - Updated binary version and fixed tests.
 1.0.4 - Include protocol.conf to create the source distribution
 1.0.3 - Fix binary path, add protocols.conf
 1.0.2 - Fix getProgram and environ
