@@ -6,4 +6,4 @@ Gautomatch is a GPU-accelerated particle picking software developed by [Kai Zhan
 
 Supported versions of Gctf: 0.53, 0.56
 
-![build status](http://arquimedes.cnb.csic.es:9980/badges/gautomatch_devel.svg "Build status")
+![build status](http://scipion-test.cnb.csic.es:9980/badges/gautomatch_devel.svg "Build status")
