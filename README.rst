@@ -52,4 +52,4 @@ Protocols
 References
 ----------
 
-1. K. Zhang. Unpublished. 
+1. Kai Zhang. Unpublished. 
