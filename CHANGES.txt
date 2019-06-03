@@ -1,3 +1,4 @@
+1.0.6 - fixed wizard (thanks @pconesa)
 1.0.5:
     - Updated binary version and fixed tests.
 1.0.4 - Include protocol.conf to create the source distribution
