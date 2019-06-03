@@ -181,7 +181,7 @@ class GautomatchPickerWizard(emwiz.EmWizard):
         convertCmd = pw.join('apps', 'pw_convert.py')
 
         args = {
-            "pickScript": pickScript,
+            "pickScript": "python " + pickScript,
             "pickCmd": pickCmd,
             "convertCmd": convertCmd,
             'coordsDir': coordsDir,
