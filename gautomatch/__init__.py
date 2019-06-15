@@ -85,11 +85,13 @@ class Plugin(pyworkflow.em.Plugin):
         for micName in micNameList:
             # We convert the input micrograph on demand if not in .mrc
             outMic = os.path.join(workDir, pwutils.replaceBaseExt(micName, 'mrc'))
-            args += ' %s' % outMic
+            #args += ' %s' % outMic
             if micName.endswith('.mrc'):
                 pwutils.createLink(micName, outMic)
             else:
                 ih.convert(micName, outMic)
+
+        args += ' %s/*.mrc' % workDir
 
         if refStack is not None:
             args += ' -T %s' % refStack
@@ -102,10 +104,10 @@ class Plugin(pyworkflow.em.Plugin):
         else:
             runJob(cls.getProgram(), args, env=environ)
 
-        for micName in micNameList:
-            outMic = os.path.join(workDir, pwutils.replaceBaseExt(micName, 'mrc'))
-            # After picking we can remove the temporary file.
-            pwutils.cleanPath(outMic)
+        #for micName in micNameList:
+        #    outMic = os.path.join(workDir, pwutils.replaceBaseExt(micName, 'mrc'))
+        #    # After picking we can remove the temporary file.
+        #    pwutils.cleanPath(outMic)
 
 
 pyworkflow.em.Domain.registerPlugin(__name__)
