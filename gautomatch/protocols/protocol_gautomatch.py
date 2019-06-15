@@ -25,6 +25,7 @@
 # **************************************************************************
 
 import os
+from glob import glob
 
 import pyworkflow.utils as pwutils
 import pyworkflow.protocol.params as params
@@ -346,7 +347,6 @@ class ProtGautomatch(em.ProtParticlePickingAuto):
                                         % pwutils.removeBaseExt(micFn))
                 writeMicCoords(mic, badCoords.iterCoordinates(mic), fnCoords)
 
-        # We convert the input micrograph on demand if not in .mrc
         gautomatch.Plugin.runGautomatch(micFnList,
                                         self._getReferencesFn(),
                                         micPath,
@@ -355,13 +355,9 @@ class ProtGautomatch(em.ProtParticlePickingAuto):
                                         runJob=self.runJob)
 
         # Move output from micPath (tmp) to extra
-        for micName in micFnList:
-            outMic = pwutils.join(micPath, pwutils.replaceBaseExt(micName, 'mrc'))
-            # After picking we can remove the temporary file.
-            pwutils.cleanPath(outMic)
-
-        # check this awful hack
-        pwutils.moveTree(micPath + '/*', self.getMicrographsDir() + '/')
+        for p in [micPath + '/*.star', micPath + '/*.box']:
+            for f in (glob(p)):
+                pwutils.moveFile(f, self.getMicrographsDir())
 
     def createOutputStep(self):
         pass
