@@ -85,11 +85,12 @@ class Plugin(pyworkflow.em.Plugin):
         for micName in micNameList:
             # We convert the input micrograph on demand if not in .mrc
             outMic = os.path.join(workDir, pwutils.replaceBaseExt(micName, 'mrc'))
-            args += ' %s' % outMic
             if micName.endswith('.mrc'):
                 pwutils.createLink(micName, outMic)
             else:
                 ih.convert(micName, outMic)
+
+        args += ' %s/*.mrc' % workDir
 
         if refStack is not None:
             args += ' -T %s' % refStack

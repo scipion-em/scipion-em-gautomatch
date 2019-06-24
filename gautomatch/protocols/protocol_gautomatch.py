@@ -25,6 +25,7 @@
 # **************************************************************************
 
 import os
+from glob import glob
 
 import pyworkflow.utils as pwutils
 import pyworkflow.protocol.params as params
@@ -37,7 +38,6 @@ import gautomatch
 from gautomatch.convert import (readSetOfCoordinates, writeDefectsFile,
                                 writeMicCoords)
 from gautomatch.constants import MICS_ALL, MICS_SUBSET
-
 
 
 class ProtGautomatch(em.ProtParticlePickingAuto):
@@ -328,6 +328,11 @@ class ProtGautomatch(em.ProtParticlePickingAuto):
 
     def _pickMicrographList(self, micList, args):
         """ Pick several micrographs at once, probably a bit more efficient."""
+        micPath = self._getMicrographDir(micList[0])
+        if len(micList) > 1:
+            micPath += ('-%06d' % micList[-1].getObjId())
+        pwutils.makePath(micPath)
+
         micFnList = []
 
         for mic in micList:
@@ -338,17 +343,23 @@ class ProtGautomatch(em.ProtParticlePickingAuto):
             badCoords = self.inputBadCoords.get()
 
             if self.exclusive and badCoords:
-                fnCoords = os.path.join(self.getMicrographsDir(), '%s_rubbish.star'
+                fnCoords = pwutils.join(micPath, '%s_rubbish.star'
                                         % pwutils.removeBaseExt(micFn))
                 writeMicCoords(mic, badCoords.iterCoordinates(mic), fnCoords)
 
-        # We convert the input micrograph on demand if not in .mrc
         gautomatch.Plugin.runGautomatch(micFnList,
                                         self._getReferencesFn(),
-                                        self.getMicrographsDir(),
+                                        micPath,
                                         args,
                                         env=gautomatch.Plugin.getEnviron(),
                                         runJob=self.runJob)
+
+        # Move output from micPath (tmp) to extra
+        for p in ['*.star', '*.box']:
+            for f in glob(os.path.join(micPath, p)):
+                pwutils.moveFile(f, self.getMicrographsDir())
+
+        pwutils.cleanPath(micPath)
 
     def createOutputStep(self):
         pass
@@ -378,7 +389,7 @@ class ProtGautomatch(em.ProtParticlePickingAuto):
         if self.getInputMicrographs() is not None:
             summary.append("Number of input micrographs: %d"
                            % self.getInputMicrographs().getSize())
-        if (self.getOutputsSize() > 0):
+        if self.getOutputsSize() > 0:
             summary.append("Number of particles picked: %d"
                            % self.getCoords().getSize())
             summary.append("Particle size: %d px"
@@ -406,7 +417,7 @@ class ProtGautomatch(em.ProtParticlePickingAuto):
 
         return methodsMsgs
 
-    # --------------------------- UTILS functions ------------------------------
+    # --------------------------- UTILS functions -----------------------------
     def readCoordsFromMics(self, workingDir, micList, coordSet):
         if coordSet.getBoxSize() is None:
             coordSet.setBoxSize(self._getBoxSize())
@@ -531,9 +542,13 @@ class ProtGautomatch(em.ProtParticlePickingAuto):
 
     def _getBoxSize(self):
         if self.boxSize and self.boxSize > 0:
-            return  self.boxSize.get()
+            return self.boxSize.get()
         else:
             return self.inputReferences.get().getXDim() or 100
+
+    def _getMicrographDir(self, mic):
+        """ Return an unique dir name for results of the micrograph. """
+        return self._getTmpPath('mic_%06d' % mic.getObjId())
 
     def getMicrographsDir(self):
         return self._getExtraPath('micrographs')
