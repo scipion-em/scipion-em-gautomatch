@@ -355,9 +355,11 @@ class ProtGautomatch(em.ProtParticlePickingAuto):
                                         runJob=self.runJob)
 
         # Move output from micPath (tmp) to extra
-        for p in [micPath + '/*.star', micPath + '/*.box']:
-            for f in (glob(p)):
+        for p in ['*.star', '*.box']:
+            for f in glob(os.path.join(micPath, p)):
                 pwutils.moveFile(f, self.getMicrographsDir())
+
+        pwutils.cleanPath(micPath)
 
     def createOutputStep(self):
         pass
