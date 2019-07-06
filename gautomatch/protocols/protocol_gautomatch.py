@@ -105,9 +105,11 @@ class ProtGautomatch(em.ProtParticlePickingAuto):
                       label='Threshold',
                       help='Particles with CCC above the threshold will be '
                            'picked')
-        form.addParam('particleSize', params.IntParam, default=250,
+        form.addParam('particleSize', params.IntParam, default=-1,
                       label='Particle radius (A)',
-                      help="Particle radius in Angstrom")
+                      help="Particle radius in Angstrom. Default -1 means "
+                           "it will be equal to 75% of references size if they "
+                           "were provided, otherwise 250 A.")
         form.addHidden(params.GPU_LIST, params.StringParam, default='0',
                       expertLevel=params.LEVEL_ADVANCED,
                       label="Choose GPU IDs",
@@ -120,7 +122,7 @@ class ProtGautomatch(em.ProtParticlePickingAuto):
                       help="By default, the program will optimize advanced "
                            "parameters by itself, however if you want to "
                            "modify them, select No")
-        form.addParam('boxSize', params.IntParam, default=128,
+        form.addParam('boxSize', params.IntParam, default=-1,
                       label='Box size (pix)', condition='not advanced',
                       help="Box size, in pixels; a suggested value will be "
                            "automatically calculated using pixel size and "
@@ -485,7 +487,7 @@ class ProtGautomatch(em.ProtParticlePickingAuto):
         """
         args = ' --apixM %0.2f' % self.inputMicrographs.get().getSamplingRate()
         args += ' --ang_step %d' % self.angStep
-        args += ' --diameter %d' % (2 * self.particleSize.get())
+        args += ' --diameter %d' % self._getDiameter()
         args += ' --lp %d' % self.lowPass
         args += ' --hp %d' % self.highPass
         args += ' --gid %(GPU)s'
@@ -501,7 +503,7 @@ class ProtGautomatch(em.ProtParticlePickingAuto):
 
         if not self.advanced:
             args += ' --speed %d' % self.speed
-            args += ' --boxsize %d' % self.boxSize
+            args += ' --boxsize %d' % self._getBoxSize()
             if mindist:
                 args += ' --min_dist %d' % self.minDist
             args += ' --lsigma_cutoff %0.2f' % self.localSigmaCutoff
@@ -574,3 +576,14 @@ class ProtGautomatch(em.ProtParticlePickingAuto):
         if self.inputReferences.get():
             return self._getExtraPath('references.mrcs')
         return None
+
+    def _getDiameter(self):
+        """ Return 75% of references size"""
+        refs = self.inputReferences.get()
+        pix = refs.getSamplingRate()
+        dim = refs.getXDim()
+
+        if self.particleSize and self.particleSize > 0:
+            return 2 * self.particleSize.get()
+        else:
+            return int(0.75 * dim * pix) or 250
