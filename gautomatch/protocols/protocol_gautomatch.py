@@ -90,7 +90,7 @@ class ProtGautomatch(em.ProtParticlePickingAuto):
         form.addParam('micrographsNumber', params.IntParam, default='10',
                        condition='micrographsSelection==%d' % MICS_SUBSET,
                       label='Micrographs for optimization:',
-                      help='Select the number of micrographs that you want'
+                      help='Select the number of micrographs that you want '
                            'to be used for the parameters optimization. ')
         form.addParam('ctfRelations', params.RelationParam,
                       relationName=RELATION_CTF,
@@ -361,6 +361,13 @@ class ProtGautomatch(em.ProtParticlePickingAuto):
             for f in glob(os.path.join(micPath, p)):
                 pwutils.moveFile(f, self.getMicrographsDir())
 
+        # Move debug output to extra
+        debugSuffixes = ['*_ccmax.mrc', '*_pref.mrc', '*_bg.mrc',
+                         '*_bgfree.mrc', '*_lsigma.mrc', '*_mask.mrc']
+        for p in debugSuffixes:
+            for f in glob(os.path.join(micPath, p)):
+                pwutils.moveFile(f, self.getMicrographsDir())
+
         pwutils.cleanPath(micPath)
 
     def createOutputStep(self):
@@ -580,10 +587,13 @@ class ProtGautomatch(em.ProtParticlePickingAuto):
     def _getDiameter(self):
         """ Return 75% of references size"""
         refs = self.inputReferences.get()
-        pix = refs.getSamplingRate()
-        dim = refs.getXDim()
 
         if self.particleSize and self.particleSize > 0:
             return 2 * self.particleSize.get()
         else:
-            return int(0.75 * dim * pix) or 250
+            if refs:
+                pix = refs.getSamplingRate()
+                dim = refs.getXDim()
+                return int(0.75 * dim * pix)
+            else:
+                return 250
