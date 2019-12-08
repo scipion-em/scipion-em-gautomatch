@@ -28,12 +28,12 @@ import os
 import sys
 
 import pyworkflow as pw
-import pyworkflow.em.wizard as emwiz
+import pwem.wizards as emwiz
 import pyworkflow.utils as pwutils
 import pyworkflow.gui.dialog as dialog
-from pyworkflow.em.viewers import CoordinatesObjectView
-from pyworkflow.em.constants import *
-from pyworkflow.em.convert import getSubsetByDefocus
+from pwem.viewers import CoordinatesObjectView
+from pwem.constants import *
+from pwem.convert import getSubsetByDefocus
 
 from gautomatch.protocols import ProtGautomatch
 

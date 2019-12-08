@@ -25,8 +25,8 @@
 # *  e-mail address 'scipion@cnb.csic.es'
 # *
 # **************************************************************************
-
-from pyworkflow.em import *
+from pwem.protocols import (ProtImportAverages, ProtImportMicrographs,
+                            ProtImportCoordinates)
 from pyworkflow.tests import *
 
 from gautomatch.protocols import *

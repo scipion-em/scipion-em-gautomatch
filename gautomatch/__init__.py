@@ -26,8 +26,9 @@
 
 import os
 
-import pyworkflow.em
+import pwem
 import pyworkflow.utils as pwutils
+from pwem.convert import ImageHandler
 
 from .constants import *
 
@@ -36,7 +37,7 @@ _logo = "gautomatch_logo.png"
 _references = ['Zhang']
 
 
-class Plugin(pyworkflow.em.Plugin):
+class Plugin(pwem.Plugin):
     _homeVar = GAUTOMATCH_HOME
     _pathVars = [GAUTOMATCH_HOME]
     _supportedVersions = ['0.53', '0.56']
@@ -80,7 +81,7 @@ class Plugin(pyworkflow.em.Plugin):
         """
         args = ''
 
-        ih = pyworkflow.em.ImageHandler()
+        ih = ImageHandler()
 
         for micName in micNameList:
             # We convert the input micrograph on demand if not in .mrc
@@ -109,4 +110,4 @@ class Plugin(pyworkflow.em.Plugin):
             pwutils.cleanPath(outMic)
 
 
-pyworkflow.em.Domain.registerPlugin(__name__)
+pwem.Domain.registerPlugin(__name__)

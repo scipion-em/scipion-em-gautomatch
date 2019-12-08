@@ -29,8 +29,9 @@ from glob import glob
 
 import pyworkflow.utils as pwutils
 import pyworkflow.protocol.params as params
-import pyworkflow.em as em
-from pyworkflow.em.constants import RELATION_CTF
+from pwem.constants import RELATION_CTF
+from pwem.objects import SetOfCoordinates
+from pwem.protocols import ProtParticlePickingAuto
 from pyworkflow.utils.properties import Message
 from pyworkflow.protocol import STEPS_PARALLEL
 
@@ -40,7 +41,7 @@ from gautomatch.convert import (readSetOfCoordinates, writeDefectsFile,
 from gautomatch.constants import MICS_ALL, MICS_SUBSET
 
 
-class ProtGautomatch(em.ProtParticlePickingAuto):
+class ProtGautomatch(ProtParticlePickingAuto):
     """ Automated particle picker for SPA. Uses Gautomatch.
 
     Gautomatch is a GPU accelerated program for accurate, fast, flexible and
@@ -50,13 +51,13 @@ class ProtGautomatch(em.ProtParticlePickingAuto):
     _label = 'auto-picking'
 
     def __init__(self, **kwargs):
-        em.ProtParticlePickingAuto.__init__(self, **kwargs)
+        ProtParticlePickingAuto.__init__(self, **kwargs)
         self.stepsExecutionMode = STEPS_PARALLEL
 
     # --------------------------- DEFINE param functions -----------------------
     def _defineParams(self, form):
 
-        em.ProtParticlePickingAuto._defineParams(self, form)
+        ProtParticlePickingAuto._defineParams(self, form)
         form.addParam('inputReferences', params.PointerParam,
                       pointerClass='SetOfAverages',
                       label='Input References', important=True, allowsNull=True,
@@ -442,7 +443,7 @@ class ProtGautomatch(em.ProtParticlePickingAuto):
         if not os.path.exists(rejectedCoordSqlite):
             coordSetAux = self._createSetOfCoordinates(micSet, suffix='_rejected')
         else:
-            coordSetAux = em.SetOfCoordinates(filename=rejectedCoordSqlite)
+            coordSetAux = SetOfCoordinates(filename=rejectedCoordSqlite)
             coordSetAux.enableAppend()
            
         coordSetAux.setBoxSize(self._getBoxSize())

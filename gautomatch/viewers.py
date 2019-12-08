@@ -29,10 +29,10 @@
 This module implements the viewer for Gautomatch program
 """
 
-from pyworkflow.em.data import SetOfCoordinates
+from pwem.objects import SetOfCoordinates
 from pyworkflow.protocol.params import *
 from pyworkflow.viewer import ProtocolViewer, DESKTOP_TKINTER, WEB_DJANGO
-from pyworkflow.em.viewers import ObjectView
+from pwem.viewers import ObjectView
 import pyworkflow.utils as pwutils
 
 from gautomatch.protocols import ProtGautomatch
@@ -122,7 +122,7 @@ class GautomatchViewer(ProtocolViewer):
 
         micsFn = pwutils.join(tmpDir, micSet.getName() + '_micrographs.xmd')
         from .convert import writeSetOfMicrographs
-        from pyworkflow.em.viewers.showj import launchSupervisedPickerGUI
+        from pwem.viewers.showj import launchSupervisedPickerGUI
         writeSetOfMicrographs(micSet, micsFn)
         inTmpFolder = True
         view = []

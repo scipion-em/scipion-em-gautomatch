@@ -24,4 +24,4 @@
 # *
 # **************************************************************************
 
-from protocol_gautomatch import ProtGautomatch
+from .protocol_gautomatch import ProtGautomatch

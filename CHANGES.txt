@@ -1,3 +1,4 @@
+1.0.8 - Migrated to python3
 1.0.7 - run in tmp folder, fix batch processing, clean up after done
 1.0.6 - fixed wizard (thanks @pconesa)
 1.0.5:

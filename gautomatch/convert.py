@@ -29,10 +29,10 @@
 import os
 from collections import OrderedDict
 
-import pyworkflow.em as em
-import pyworkflow.em.metadata as md
-from pyworkflow.em.constants import NO_INDEX
-from pyworkflow.em.convert import ImageHandler
+import pwem.metadata as md
+from pwem.constants import NO_INDEX
+from pwem.convert import ImageHandler
+from pwem.objects import Coordinate
 from pyworkflow.object import ObjectWrap
 import pyworkflow.utils as pwutils
 
@@ -81,7 +81,7 @@ def rowToCoordinate(coordRow):
     """ Create a Coordinate from a row of a meta """
     # Check that all required labels are present in the row
     if coordRow.containsAll(COOR_DICT):
-        coord = em.Coordinate()
+        coord = Coordinate()
         rowToObject(coordRow, coord, COOR_DICT, extraLabels=COOR_EXTRA_LABELS)
         # Gautomatch starts _rlnClassNumber at 0, but relion at 1
         # so let's increment its value
@@ -301,7 +301,7 @@ def writeSetOfMicrographs(micSet, filename):
     for img in micSet:
         objId = mdata.addObject()
         imgRow = md.Row()
-        imgRow.setValue(md.MDL_ITEM_ID, long(objId))
+        imgRow.setValue(md.MDL_ITEM_ID, int(objId))
 
         index, fname = img.getLocation()
         fn = ImageHandler.locationToXmipp((index, fname))
