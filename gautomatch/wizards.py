@@ -64,7 +64,7 @@ class GautomatchParticleWizard(emwiz.ParticleMaskRadiusWizard):
         _value = params['value']
         _label = params['label']
         emwiz.ParticleMaskRadiusWizard.show(self, form, _value, _label,
-                                            pwem.constants.UNIT_ANGSTROM)
+                                            UNIT_ANGSTROM)
 
 # ===============================================================================
 # FILTERS
