@@ -25,7 +25,6 @@
 # **************************************************************************
 
 import os
-import sys
 
 import pyworkflow as pw
 import pwem.wizards as emwiz
@@ -65,7 +64,7 @@ class GautomatchParticleWizard(emwiz.ParticleMaskRadiusWizard):
         _value = params['value']
         _label = params['label']
         emwiz.ParticleMaskRadiusWizard.show(self, form, _value, _label,
-                                            emwiz.UNIT_ANGSTROM)
+                                            pwem.constants.UNIT_ANGSTROM)
 
 # ===============================================================================
 # FILTERS

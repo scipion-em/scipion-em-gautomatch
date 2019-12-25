@@ -62,7 +62,7 @@ def rowToObject(row, obj, attrDict, extraLabels=[]):
     """
     obj.setEnabled(row.getValue(md.RLN_IMAGE_ENABLED, 1) > 0)
 
-    for attr, label in attrDict.iteritems():
+    for attr, label in attrDict.items():
         value = row.getValue(label)
         if not hasattr(obj, attr):
             setattr(obj, attr, ObjectWrap(value))
