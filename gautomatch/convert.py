@@ -8,7 +8,7 @@
 # *
 # * This program is free software; you can redistribute it and/or modify
 # * it under the terms of the GNU General Public License as published by
-# * the Free Software Foundation; either version 2 of the License, or
+# * the Free Software Foundation; either version 3 of the License, or
 # * (at your option) any later version.
 # *
 # * This program is distributed in the hope that it will be useful,
@@ -28,6 +28,7 @@
 
 import os
 from collections import OrderedDict
+from io import open
 
 import pwem.metadata as md
 from pwem.constants import NO_INDEX
@@ -136,7 +137,7 @@ def readCoordinates(mic, fileName, coordsSet):
             coordsSet.append(coord)
 
 
-class CoordStarWriter():
+class CoordStarWriter:
     """ Helper class to write a star file containing coordinates. """
     # Gautomatch cannot read default star header (with # XMIPP_STAR_1 *),
     # so we write directly to file

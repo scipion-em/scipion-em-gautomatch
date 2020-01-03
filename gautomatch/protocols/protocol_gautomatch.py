@@ -6,7 +6,7 @@
 # *
 # * This program is free software; you can redistribute it and/or modify
 # * it under the terms of the GNU General Public License as published by
-# * the Free Software Foundation; either version 2 of the License, or
+# * the Free Software Foundation; either version 3 of the License, or
 # * (at your option) any later version.
 # *
 # * This program is distributed in the hope that it will be useful,
@@ -54,13 +54,14 @@ class ProtGautomatch(ProtParticlePickingAuto):
         ProtParticlePickingAuto.__init__(self, **kwargs)
         self.stepsExecutionMode = STEPS_PARALLEL
 
-    # --------------------------- DEFINE param functions -----------------------
+    # --------------------------- DEFINE param functions ----------------------
     def _defineParams(self, form):
 
         ProtParticlePickingAuto._defineParams(self, form)
         form.addParam('inputReferences', params.PointerParam,
                       pointerClass='SetOfAverages',
-                      label='Input References', important=True, allowsNull=True,
+                      label='Input References', important=True,
+                      allowsNull=True,
                       help="Template images (2D class averages or "
                            "reprojections from a reference volume) to be used "
                            "in picking.\n "
@@ -78,7 +79,8 @@ class ProtGautomatch(ProtParticlePickingAuto):
         form.addParam('angStep', params.IntParam, default=5,
                       label='Angular step size',
                       help='Angular step size for picking, in degrees')
-        form.addParam('micrographsSelection', params.EnumParam, default=MICS_ALL,
+        form.addParam('micrographsSelection', params.EnumParam,
+                      default=MICS_ALL,
                       choices=['All', 'Subset'],
                       display=params.EnumParam.DISPLAY_HLIST,
                       label='Micrographs for wizard',
@@ -89,7 +91,7 @@ class ProtGautomatch(ProtParticlePickingAuto):
                            'defocus values (where micrographs will be '
                            'taken from different defocus). ')
         form.addParam('micrographsNumber', params.IntParam, default='10',
-                       condition='micrographsSelection==%d' % MICS_SUBSET,
+                      condition='micrographsSelection==%d' % MICS_SUBSET,
                       label='Micrographs for optimization:',
                       help='Select the number of micrographs that you want '
                            'to be used for the parameters optimization. ')
@@ -112,10 +114,10 @@ class ProtGautomatch(ProtParticlePickingAuto):
                            "it will be equal to 75% of references size if they "
                            "were provided, otherwise 250 A.")
         form.addHidden(params.GPU_LIST, params.StringParam, default='0',
-                      expertLevel=params.LEVEL_ADVANCED,
-                      label="Choose GPU IDs",
-                      help="GPU ID, normally it is 0. "
-                           "TODO: Document better GPU IDs and threads. ")
+                       expertLevel=params.LEVEL_ADVANCED,
+                       label="Choose GPU IDs",
+                       help="GPU ID, normally it is 0. "
+                            "TODO: Document better GPU IDs and threads. ")
 
         form.addSection(label='Advanced')
         form.addParam('advanced', params.BooleanParam, default=True,
@@ -304,7 +306,8 @@ class ProtGautomatch(ProtParticlePickingAuto):
 
         self._defineStreamingParams(form)
 
-        # Allow many threads if we can put more than one in a GPU or several GPUs
+        # Allow many threads if we can put more than one in a GPU
+        # or several GPUs
         form.addParallelSection(threads=1, mpi=1)
 
     # --------------------------- INSERT steps functions ----------------------
@@ -319,17 +322,18 @@ class ProtGautomatch(ProtParticlePickingAuto):
             converted otherwise.
         References: will always be converted to '.mrcs' format
         """
-        pwutils.makePath(self.getMicrographsDir())  # put output and mics in extra dir
+        # put output and mics in extra dir
+        pwutils.makePath(self.getMicrographsDir())
         # We will always convert the templates to mrcs stack
         self.convertReferences(self._getReferencesFn())
         # Write defects star file if necessary
         if self.exclusive and self.inputDefects.get():
             writeDefectsFile(self.inputDefects.get(), self._getDefectsFn())
 
-    def _pickMicrograph(self, mic, args):
-        self._pickMicrographList([mic], args)
+    def _pickMicrograph(self, mic, *args):
+        self._pickMicrographList([mic], *args)
 
-    def _pickMicrographList(self, micList, args):
+    def _pickMicrographList(self, micList, *args):
         """ Pick several micrographs at once, probably a bit more efficient."""
         micPath = self._getMicrographDir(micList[0])
         if len(micList) > 1:
@@ -353,7 +357,7 @@ class ProtGautomatch(ProtParticlePickingAuto):
         gautomatch.Plugin.runGautomatch(micFnList,
                                         self._getReferencesFn(),
                                         micPath,
-                                        args,
+                                        *args,
                                         env=gautomatch.Plugin.getEnviron(),
                                         runJob=self.runJob)
 
@@ -441,7 +445,8 @@ class ProtGautomatch(ProtParticlePickingAuto):
         rejectedCoordSqlite = self._getPath('coordinates_rejected.sqlite')
         
         if not os.path.exists(rejectedCoordSqlite):
-            coordSetAux = self._createSetOfCoordinates(micSet, suffix='_rejected')
+            coordSetAux = self._createSetOfCoordinates(micSet,
+                                                       suffix='_rejected')
         else:
             coordSetAux = SetOfCoordinates(filename=rejectedCoordSqlite)
             coordSetAux.enableAppend()

@@ -8,7 +8,7 @@
 # *
 # * This program is free software; you can redistribute it and/or modify
 # * it under the terms of the GNU General Public License as published by
-# * the Free Software Foundation; either version 2 of the License, or
+# * the Free Software Foundation; either version 3 of the License, or
 # * (at your option) any later version.
 # *
 # * This program is distributed in the hope that it will be useful,
@@ -88,12 +88,12 @@ class TestGautomatchBase(BaseTest):
     def runPicking1(cls):
         """ Run a particle picking. """
         protGM = ProtGautomatch(objLabel='Gautomatch auto-picking (klh)',
-                               invertTemplatesContrast=True,
-                               threshold=0.18,
-                               particleSize=250,
-                               advanced='False',
-                               boxSize=150,
-                               localSigmaCutoff=2.0)
+                                invertTemplatesContrast=True,
+                                threshold=0.18,
+                                particleSize=250,
+                                advanced='False',
+                                boxSize=150,
+                                localSigmaCutoff=2.0)
         protGM.inputMicrographs.set(cls.protImportMics.outputMicrographs)
         protGM.inputReferences.set(cls.protImportAvgs.outputAverages)
         cls.launchProtocol(protGM)
@@ -103,13 +103,13 @@ class TestGautomatchBase(BaseTest):
     def runPicking2(cls):
         """ Run a particle picking with excludsive options. """
         protGM2 = ProtGautomatch(objLabel='Gautomatch auto-picking 2 (klh)',
-                                invertTemplatesContrast=True,
-                                threshold=0.18,
-                                particleSize=250,
-                                advanced='False',
-                                boxSize=150,
-                                localSigmaCutoff=2.0,
-                                exclusive=True)
+                                 invertTemplatesContrast=True,
+                                 threshold=0.18,
+                                 particleSize=250,
+                                 advanced='False',
+                                 boxSize=150,
+                                 localSigmaCutoff=2.0,
+                                 exclusive=True)
         protGM2.inputMicrographs.set(cls.protImportMics.outputMicrographs)
         protGM2.inputReferences.set(cls.protImportAvgs.outputAverages)
         protGM2.inputBadCoords.set(cls.protImportCoords.outputCoordinates)

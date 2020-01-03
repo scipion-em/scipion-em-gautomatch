@@ -6,7 +6,7 @@
 # *
 # * This program is free software; you can redistribute it and/or modify
 # * it under the terms of the GNU General Public License as published by
-# * the Free Software Foundation; either version 2 of the License, or
+# * the Free Software Foundation; either version 3 of the License, or
 # * (at your option) any later version.
 # *
 # * This program is distributed in the hope that it will be useful,
@@ -25,6 +25,7 @@
 # **************************************************************************
 
 import os
+from io import open
 
 import pyworkflow as pw
 import pwem.wizards as emwiz
@@ -37,11 +38,9 @@ from pwem.convert import getSubsetByDefocus
 from gautomatch.protocols import ProtGautomatch
 
 
-
-#===============================================================================
+# =============================================================================
 # MASKS
-#===============================================================================
-
+# =============================================================================
 class GautomatchParticleWizard(emwiz.ParticleMaskRadiusWizard):
     _targets = [(ProtGautomatch, ['particleSize'])]
     
@@ -49,7 +48,7 @@ class GautomatchParticleWizard(emwiz.ParticleMaskRadiusWizard):
         
         label, value = self._getInputProtocol(self._targets, protocol)
         
-        protParams = {}
+        protParams = dict()
         protParams['input'] = protocol.inputReferences
         protParams['label'] = label
         protParams['value'] = value
@@ -59,7 +58,7 @@ class GautomatchParticleWizard(emwiz.ParticleMaskRadiusWizard):
         _objs = self._getParameters(protocol)['input'] 
         return emwiz.ParticleMaskRadiusWizard._getListProvider(self, _objs)
     
-    def show(self, form):
+    def show(self, form, *args):
         params = self._getParameters(form.protocol)
         _value = params['value']
         _label = params['label']
@@ -70,6 +69,7 @@ class GautomatchParticleWizard(emwiz.ParticleMaskRadiusWizard):
 # FILTERS
 # ===============================================================================
 
+
 class GautomatchBandpassWizard(emwiz.FilterParticlesWizard):
     _targets = [(ProtGautomatch, ['lowPass', 'highPass'])]
 
@@ -77,7 +77,7 @@ class GautomatchBandpassWizard(emwiz.FilterParticlesWizard):
 
         label, value = self._getInputProtocol(self._targets, protocol)
 
-        protParams = {}
+        protParams = dict()
         protParams['input'] = protocol.inputMicrographs
         protParams['label'] = label
         protParams['value'] = value
@@ -88,7 +88,7 @@ class GautomatchBandpassWizard(emwiz.FilterParticlesWizard):
         _objs = self._getParameters(protocol)['input']
         return emwiz.FilterParticlesWizard._getListProvider(self, _objs)
 
-    def show(self, form):
+    def show(self, form, *args):
         protocol = form.protocol
         provider = self._getProvider(protocol)
         params = self._getParameters(protocol)
@@ -110,17 +110,17 @@ class GautomatchBandpassWizard(emwiz.FilterParticlesWizard):
                 form.setVar('highPass', d.getLowFreq())
 
         else:
-            dialog.showWarning("Input micrographs", "Select micrographs first", form.root)
+            dialog.showWarning("Input micrographs", "Select micrographs first",
+                               form.root)
         
-    
-#===============================================================================
+# =============================================================================
 # PICKER
-#===============================================================================
+# =============================================================================
 
 class GautomatchPickerWizard(emwiz.EmWizard):
     _targets = [(ProtGautomatch, ['threshold'])]
 
-    def show(self, form):
+    def show(self, form, *args):
         prot = form.protocol
         micSet = prot.getInputMicrographs()
 
