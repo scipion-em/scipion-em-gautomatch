@@ -199,4 +199,7 @@ setup(
         'Bug Reports': 'https://github.com/scipion-em/scipion-em-gautomatch/issues',
         'Source': 'https://github.com/scipion-em/scipion-em-gautomatch/',
     },
+    entry_points={
+        'pyworkflow.plugin': 'gautomatch = gautamatch'
+    },
 )

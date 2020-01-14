@@ -108,6 +108,3 @@ class Plugin(pwem.Plugin):
             outMic = os.path.join(workDir, pwutils.replaceBaseExt(micName, 'mrc'))
             # After picking we can remove the temporary file.
             pwutils.cleanPath(outMic)
-
-
-pwem.Domain.registerPlugin(__name__)
