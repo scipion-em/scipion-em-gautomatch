@@ -30,9 +30,9 @@ import os
 from collections import OrderedDict
 from io import open
 
-import pwem.metadata as md
+import pwem.emlib.metadata as md
 from pwem.constants import NO_INDEX
-from pwem.convert import ImageHandler
+from pwem.emlib.image import ImageHandler
 from pwem.objects import Coordinate
 from pyworkflow.object import ObjectWrap
 import pyworkflow.utils as pwutils
