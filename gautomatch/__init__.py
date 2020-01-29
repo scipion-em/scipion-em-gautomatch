@@ -28,7 +28,7 @@ import os
 
 import pwem
 import pyworkflow.utils as pwutils
-from pwem.convert import ImageHandler
+from pwem.emlib.image import ImageHandler
 
 from .constants import *
 
