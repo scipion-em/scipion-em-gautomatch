@@ -42,7 +42,7 @@ from gautomatch.constants import MICS_ALL, MICS_SUBSET
 
 
 class ProtGautomatch(ProtParticlePickingAuto):
-    """ Automated particle picker for SPA. Uses Gautomatch.
+    """ Automated particle picker for SPA.
 
     Gautomatch is a GPU accelerated program for accurate, fast, flexible and
     fully automatic particle picking from cryo-EM micrographs with or without

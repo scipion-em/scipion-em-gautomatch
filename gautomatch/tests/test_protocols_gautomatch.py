@@ -85,7 +85,7 @@ class TestGautomatchBase(BaseTest):
         cls.launchProtocol(cls.protImportCoords)
         return cls.protImportCoords
 
-    def runPicking1(cls):
+    def runPicking1(self):
         """ Run a particle picking. """
         protGM = ProtGautomatch(objLabel='Gautomatch auto-picking (klh)',
                                 invertTemplatesContrast=True,
@@ -94,13 +94,13 @@ class TestGautomatchBase(BaseTest):
                                 advanced='False',
                                 boxSize=150,
                                 localSigmaCutoff=2.0)
-        protGM.inputMicrographs.set(cls.protImportMics.outputMicrographs)
-        protGM.inputReferences.set(cls.protImportAvgs.outputAverages)
-        cls.launchProtocol(protGM)
-        cls.assertSetSize(protGM.getCoords(), msg='Picking1 didn\'t generate output coordinates')
+        protGM.inputMicrographs.set(self.protImportMics.outputMicrographs)
+        protGM.inputReferences.set(self.protImportAvgs.outputAverages)
+        self.launchProtocol(protGM)
+        self.assertSetSize(protGM.getCoords(), msg='Picking1 didn\'t generate output coordinates')
         return protGM
 
-    def runPicking2(cls):
+    def runPicking2(self):
         """ Run a particle picking with excludsive options. """
         protGM2 = ProtGautomatch(objLabel='Gautomatch auto-picking 2 (klh)',
                                  invertTemplatesContrast=True,
@@ -110,11 +110,11 @@ class TestGautomatchBase(BaseTest):
                                  boxSize=150,
                                  localSigmaCutoff=2.0,
                                  exclusive=True)
-        protGM2.inputMicrographs.set(cls.protImportMics.outputMicrographs)
-        protGM2.inputReferences.set(cls.protImportAvgs.outputAverages)
-        protGM2.inputBadCoords.set(cls.protImportCoords.outputCoordinates)
-        cls.launchProtocol(protGM2)
-        cls.assertSetSize(protGM2.getCoords(), msg='Picking2 didn\'t generate output coordinates ')
+        protGM2.inputMicrographs.set(self.protImportMics.outputMicrographs)
+        protGM2.inputReferences.set(self.protImportAvgs.outputAverages)
+        protGM2.inputBadCoords.set(self.protImportCoords.outputCoordinates)
+        self.launchProtocol(protGM2)
+        self.assertSetSize(protGM2.getCoords(), msg='Picking2 didn\'t generate output coordinates ')
         return protGM2
 
 
