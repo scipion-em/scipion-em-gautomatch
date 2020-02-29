@@ -27,6 +27,7 @@
 # **************************************************************************
 from pwem.protocols import (ProtImportAverages, ProtImportMicrographs,
                             ProtImportCoordinates)
+from pyworkflow.utils import magentaStr
 from pyworkflow.tests import *
 
 from gautomatch.protocols import *
@@ -40,6 +41,7 @@ class TestGautomatchBase(BaseTest):
     @classmethod
     def runImportAverages(cls):
         """ Run an Import averages protocol. """
+        print(magentaStr("\n==> Importing data - class averages:"))
         cls.protImportAvg = cls.newProtocol(ProtImportAverages, 
                                             objLabel='import averages (klh)',
                                             filesPath=cls.ds.getFile('templates/*.mrc'), 
@@ -52,6 +54,7 @@ class TestGautomatchBase(BaseTest):
     def runImportMicrograph(cls, pattern, samplingRate, voltage,
                             magnification, sphericalAberration):
         """ Run an Import micrograph protocol. """
+        print(magentaStr("\n==> Importing data - micrographs:"))
         cls.protImport = cls.newProtocol(ProtImportMicrographs,
                                          objLabel='import mics (klh)', 
                                          samplingRateMode=0, 
@@ -75,6 +78,7 @@ class TestGautomatchBase(BaseTest):
     @classmethod
     def runImportCoords(cls):
         """ Run an Import coords protocol. """
+        print(magentaStr("\n==> Importing data - coordinates:"))
         cls.protImportCoords = cls.newProtocol(ProtImportCoordinates,
                                                importFrom=ProtImportCoordinates.IMPORT_FROM_XMIPP,
                                                objLabel='import bad coords',
@@ -87,6 +91,7 @@ class TestGautomatchBase(BaseTest):
 
     def runPicking1(self):
         """ Run a particle picking. """
+        print(magentaStr("\n==> Testing gautomatch - auto picking:"))
         protGM = ProtGautomatch(objLabel='Gautomatch auto-picking (klh)',
                                 invertTemplatesContrast=True,
                                 threshold=0.18,
@@ -101,7 +106,8 @@ class TestGautomatchBase(BaseTest):
         return protGM
 
     def runPicking2(self):
-        """ Run a particle picking with excludsive options. """
+        """ Run a particle picking with exclusive options. """
+        print(magentaStr("\n==> Testing gautomatch - auto-picking with bad coords:"))
         protGM2 = ProtGautomatch(objLabel='Gautomatch auto-picking 2 (klh)',
                                  invertTemplatesContrast=True,
                                  threshold=0.18,
