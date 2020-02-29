@@ -24,8 +24,6 @@
 # *
 # **************************************************************************
 
-CUDA_LIB = 'CUDA_LIB'
-
 GAUTOMATCH = 'GAUTOMATCH'
 GAUTOMATCH_HOME = 'GAUTOMATCH_HOME'
 GAUTOMATCH_CUDA_LIB = 'GAUTOMATCH_CUDA_LIB'

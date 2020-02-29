@@ -384,11 +384,10 @@ class ProtGautomatch(ProtParticlePickingAuto):
         if not self.localAvgMin < self.localAvgMax:
             errors.append('Wrong values of local average cut-off!')
 
-        if self.exclusive:
-            if not self.inputBadCoords.get() and not self.inputDefects.get():
-                errors.append("You have to provide at least "
-                              "one set of coordinates ")
-                errors.append("for exclusive picking!")
+        if self.exclusive and not self.inputBadCoords.get() and not self.inputDefects.get():
+            errors.append("You have to provide at least "
+                          "one set of coordinates ")
+            errors.append("for exclusive picking!")
 
         nprocs = max(self.numberOfMpi.get(), self.numberOfThreads.get())
 

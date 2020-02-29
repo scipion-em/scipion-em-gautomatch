@@ -61,7 +61,7 @@ class Plugin(pwem.Plugin):
         """ Return the environ settings to run Gautomatch programs. """
         environ = pwutils.Environ(os.environ)
         # Take Scipion CUDA library path
-        cudaLib = environ.getFirst((GAUTOMATCH_CUDA_LIB, CUDA_LIB))
+        cudaLib = environ.get(GAUTOMATCH_CUDA_LIB, pwem.Config.CUDA_LIB)
         environ.addLibrary(cudaLib)
 
         return environ
