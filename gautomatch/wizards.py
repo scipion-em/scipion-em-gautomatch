@@ -27,7 +27,7 @@
 import os
 from io import open
 
-import pyworkflow as pw
+import pwem
 import pwem.wizards as emwiz
 import pyworkflow.utils as pwutils
 import pyworkflow.gui.dialog as dialog
@@ -177,7 +177,7 @@ class GautomatchPickerWizard(emwiz.EmWizard):
         # Let use the first selected gpu for the wizard
         pickCmd = prot.getArgs(threshold=False,
                                mindist=False) % {'GPU': gpus[0]}
-        convertCmd = pw.join('apps', 'pw_convert.py')
+        convertCmd = pwem.join('cmd', 'convert.py')
 
         args = {
             "pickScript": "python " + pickScript,
