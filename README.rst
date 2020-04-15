@@ -4,9 +4,13 @@ Gautomatch plugin
 
 This plugin provide a wrapper around `Gautomatch picker <https://www.mrc-lmb.cam.ac.uk/kzhang/>`_.
 
-.. figure:: http://scipion-test.cnb.csic.es:9980/badges/gautomatch_devel.svg
-   :align: left
-   :alt: build status
++------------------+------------------+
+| stable: |stable| | devel: | |devel| |
++------------------+------------------+
+
+.. |stable| image:: http://scipion-test.cnb.csic.es:9980/badges/gautomatch_prod.svg
+.. |devel| image:: http://scipion-test.cnb.csic.es:9980/badges/gautomatch_sdevel.svg
+
 
 Installation
 ------------
@@ -37,6 +41,7 @@ Gautomatch binaries will be installed automatically with the plugin, but you can
 Default installation path assumed is ``software/em/gautomatch-0.56``, if you want to change it, set *GAUTOMATCH_HOME* in ``scipion.conf`` file to the folder where the Gautomatch is installed. Depending on your CUDA version and GPU card compute capability you might want to change the default binary from ``Gautomatch_v0.56_sm60_cu8.0`` to a different one by explicitly setting *GAUTOMATCH* variable. If you need to use CUDA different from the one used during Scipion installation (defined by CUDA_LIB), you can add *GAUTOMATCH_CUDA_LIB* variable to the config file. Various binaries can be downloaded from the official Gautomatch website. 
 
 To check the installation, simply run the following Scipion test:
+
 ``scipion test gautomatch.tests.test_protocols_gautomatch.TestGautomatchAutomaticPicking``
 
 Supported versions
