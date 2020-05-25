@@ -25,7 +25,6 @@
 # **************************************************************************
 
 import os
-from io import open
 
 import pwem
 import pwem.wizards as emwiz
@@ -170,8 +169,6 @@ class GautomatchPickerWizard(emwiz.EmWizard):
 #         micFn = os.path.join(coordsDir, 'micrographs.xmd')
 #         writeSetOfMicrographs(micSet, micFn)
         pickerConfig = os.path.join(coordsDir, 'picker.conf')
-        f = open(pickerConfig, "w")
-
         pickScript = os.path.join(os.path.dirname(__file__), 'run_gautomatch.py')
 
         # Let use the first selected gpu for the wizard
@@ -192,30 +189,29 @@ class GautomatchPickerWizard(emwiz.EmWizard):
 
         # If Gautomatch will guess advanced parameter we don't need to send
         # the min distance to the wizard.
-        if prot.advanced:
-            f.write("""
-            parameters = threshold
-            threshold.value =  %(threshold)s
-            threshold.label = Threshold
-            threshold.help = Particles with CCC above the threshold will be picked
-            autopickCommand = %(pickScript)s %%(micrograph) %(refStack)s %(coordsDir)s %(pickCmd)s --cc_cutoff %%(threshold)
-            convertCommand = %(convertCmd)s --coordinates --from gautomatch --to xmipp --input  %(micsSqlite)s --output %(coordsDir)s
-            """ % args)
+        with open(pickerConfig, "w") as f:
+            if prot.advanced:
+                f.write("""
+                parameters = threshold
+                threshold.value =  %(threshold)s
+                threshold.label = Threshold
+                threshold.help = Particles with CCC above the threshold will be picked
+                autopickCommand = %(pickScript)s %%(micrograph) %(refStack)s %(coordsDir)s %(pickCmd)s --cc_cutoff %%(threshold)
+                convertCommand = %(convertCmd)s --coordinates --from gautomatch --to xmipp --input  %(micsSqlite)s --output %(coordsDir)s
+                """ % args)
 
-        else:
-            f.write("""
-            parameters = threshold,mindist
-            threshold.value =  %(threshold)s
-            threshold.label = Threshold
-            threshold.help = Particles with CCC above the threshold will be picked
-            mindist.value = %(mindist)s
-            mindist.label = Min search distance
-            mindist.help = Use value of 0.9~1.1X diameter
-            autopickCommand = %(pickScript)s %%(micrograph) %(refStack)s %(coordsDir)s %(pickCmd)s --cc_cutoff %%(threshold) --min_dist %%(mindist)
-            convertCommand = %(convertCmd)s --coordinates --from gautomatch --to xmipp --input  %(micsSqlite)s --output %(coordsDir)s
-            """ % args)
-
-        f.close()
+            else:
+                f.write("""
+                parameters = threshold,mindist
+                threshold.value =  %(threshold)s
+                threshold.label = Threshold
+                threshold.help = Particles with CCC above the threshold will be picked
+                mindist.value = %(mindist)s
+                mindist.label = Min search distance
+                mindist.help = Use value of 0.9~1.1X diameter
+                autopickCommand = %(pickScript)s %%(micrograph) %(refStack)s %(coordsDir)s %(pickCmd)s --cc_cutoff %%(threshold) --min_dist %%(mindist)
+                convertCommand = %(convertCmd)s --coordinates --from gautomatch --to xmipp --input  %(micsSqlite)s --output %(coordsDir)s
+                """ % args)
 
         process = CoordinatesObjectView(project, micFn, coordsDir, prot,
                                         mode=CoordinatesObjectView.MODE_AUTOMATIC,

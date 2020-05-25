@@ -4,12 +4,13 @@ Gautomatch plugin
 
 This plugin provide a wrapper around `Gautomatch picker <https://www.mrc-lmb.cam.ac.uk/kzhang/>`_.
 
-+------------------+------------------+
-| stable: |stable| | devel: | |devel| |
-+------------------+------------------+
++--------------+----------------+--------------------+
+| prod: |prod| | devel: |devel| | support: |support| |
++--------------+----------------+--------------------+
 
-.. |stable| image:: http://scipion-test.cnb.csic.es:9980/badges/gautomatch_prod.svg
-.. |devel| image:: http://scipion-test.cnb.csic.es:9980/badges/gautomatch_sdevel.svg
+.. |prod| image:: http://scipion-test.cnb.csic.es:9980/badges/gautomatch_prod.svg
+.. |devel| image:: http://scipion-test.cnb.csic.es:9980/badges/gautomatch_devel.svg
+.. |support| image:: http://scipion-test.cnb.csic.es:9980/badges/gautomatch_support.svg
 
 
 Installation

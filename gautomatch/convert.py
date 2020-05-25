@@ -28,7 +28,6 @@
 
 import os
 from collections import OrderedDict
-from io import open
 
 import pwem.emlib.metadata as md
 from pwem.constants import NO_INDEX
