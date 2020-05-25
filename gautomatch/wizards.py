@@ -6,7 +6,7 @@
 # *
 # * This program is free software; you can redistribute it and/or modify
 # * it under the terms of the GNU General Public License as published by
-# * the Free Software Foundation; either version 2 of the License, or
+# * the Free Software Foundation; either version 3 of the License, or
 # * (at your option) any later version.
 # *
 # * This program is distributed in the hope that it will be useful,
@@ -25,24 +25,21 @@
 # **************************************************************************
 
 import os
-import sys
 
-import pyworkflow as pw
-import pyworkflow.em.wizard as emwiz
+import pwem
+import pwem.wizards as emwiz
 import pyworkflow.utils as pwutils
 import pyworkflow.gui.dialog as dialog
-from pyworkflow.em.viewers import CoordinatesObjectView
-from pyworkflow.em.constants import *
-from pyworkflow.em.convert import getSubsetByDefocus
+from pwem.viewers import CoordinatesObjectView
+from pwem.constants import *
+from pwem.convert import getSubsetByDefocus
 
 from gautomatch.protocols import ProtGautomatch
 
 
-
-#===============================================================================
+# =============================================================================
 # MASKS
-#===============================================================================
-
+# =============================================================================
 class GautomatchParticleWizard(emwiz.ParticleMaskRadiusWizard):
     _targets = [(ProtGautomatch, ['particleSize'])]
     
@@ -50,7 +47,7 @@ class GautomatchParticleWizard(emwiz.ParticleMaskRadiusWizard):
         
         label, value = self._getInputProtocol(self._targets, protocol)
         
-        protParams = {}
+        protParams = dict()
         protParams['input'] = protocol.inputReferences
         protParams['label'] = label
         protParams['value'] = value
@@ -60,16 +57,17 @@ class GautomatchParticleWizard(emwiz.ParticleMaskRadiusWizard):
         _objs = self._getParameters(protocol)['input'] 
         return emwiz.ParticleMaskRadiusWizard._getListProvider(self, _objs)
     
-    def show(self, form):
+    def show(self, form, *args):
         params = self._getParameters(form.protocol)
         _value = params['value']
         _label = params['label']
         emwiz.ParticleMaskRadiusWizard.show(self, form, _value, _label,
-                                            emwiz.UNIT_ANGSTROM)
+                                            UNIT_ANGSTROM)
 
 # ===============================================================================
 # FILTERS
 # ===============================================================================
+
 
 class GautomatchBandpassWizard(emwiz.FilterParticlesWizard):
     _targets = [(ProtGautomatch, ['lowPass', 'highPass'])]
@@ -78,7 +76,7 @@ class GautomatchBandpassWizard(emwiz.FilterParticlesWizard):
 
         label, value = self._getInputProtocol(self._targets, protocol)
 
-        protParams = {}
+        protParams = dict()
         protParams['input'] = protocol.inputMicrographs
         protParams['label'] = label
         protParams['value'] = value
@@ -89,7 +87,7 @@ class GautomatchBandpassWizard(emwiz.FilterParticlesWizard):
         _objs = self._getParameters(protocol)['input']
         return emwiz.FilterParticlesWizard._getListProvider(self, _objs)
 
-    def show(self, form):
+    def show(self, form, *args):
         protocol = form.protocol
         provider = self._getProvider(protocol)
         params = self._getParameters(protocol)
@@ -111,17 +109,17 @@ class GautomatchBandpassWizard(emwiz.FilterParticlesWizard):
                 form.setVar('highPass', d.getLowFreq())
 
         else:
-            dialog.showWarning("Input micrographs", "Select micrographs first", form.root)
+            dialog.showWarning("Input micrographs", "Select micrographs first",
+                               form.root)
         
-    
-#===============================================================================
+# =============================================================================
 # PICKER
-#===============================================================================
+# =============================================================================
 
 class GautomatchPickerWizard(emwiz.EmWizard):
     _targets = [(ProtGautomatch, ['threshold'])]
 
-    def show(self, form):
+    def show(self, form, *args):
         prot = form.protocol
         micSet = prot.getInputMicrographs()
 
@@ -171,14 +169,12 @@ class GautomatchPickerWizard(emwiz.EmWizard):
 #         micFn = os.path.join(coordsDir, 'micrographs.xmd')
 #         writeSetOfMicrographs(micSet, micFn)
         pickerConfig = os.path.join(coordsDir, 'picker.conf')
-        f = open(pickerConfig, "w")
-
         pickScript = os.path.join(os.path.dirname(__file__), 'run_gautomatch.py')
 
         # Let use the first selected gpu for the wizard
         pickCmd = prot.getArgs(threshold=False,
                                mindist=False) % {'GPU': gpus[0]}
-        convertCmd = pw.join('apps', 'pw_convert.py')
+        convertCmd = pwem.join('cmd', 'convert.py')
 
         args = {
             "pickScript": "python " + pickScript,
@@ -193,30 +189,29 @@ class GautomatchPickerWizard(emwiz.EmWizard):
 
         # If Gautomatch will guess advanced parameter we don't need to send
         # the min distance to the wizard.
-        if prot.advanced:
-            f.write("""
-            parameters = threshold
-            threshold.value =  %(threshold)s
-            threshold.label = Threshold
-            threshold.help = Particles with CCC above the threshold will be picked
-            autopickCommand = %(pickScript)s %%(micrograph) %(refStack)s %(coordsDir)s %(pickCmd)s --cc_cutoff %%(threshold)
-            convertCommand = %(convertCmd)s --coordinates --from gautomatch --to xmipp --input  %(micsSqlite)s --output %(coordsDir)s
-            """ % args)
+        with open(pickerConfig, "w") as f:
+            if prot.advanced:
+                f.write("""
+                parameters = threshold
+                threshold.value =  %(threshold)s
+                threshold.label = Threshold
+                threshold.help = Particles with CCC above the threshold will be picked
+                autopickCommand = %(pickScript)s %%(micrograph) %(refStack)s %(coordsDir)s %(pickCmd)s --cc_cutoff %%(threshold)
+                convertCommand = %(convertCmd)s --coordinates --from gautomatch --to xmipp --input  %(micsSqlite)s --output %(coordsDir)s
+                """ % args)
 
-        else:
-            f.write("""
-            parameters = threshold,mindist
-            threshold.value =  %(threshold)s
-            threshold.label = Threshold
-            threshold.help = Particles with CCC above the threshold will be picked
-            mindist.value = %(mindist)s
-            mindist.label = Min search distance
-            mindist.help = Use value of 0.9~1.1X diameter
-            autopickCommand = %(pickScript)s %%(micrograph) %(refStack)s %(coordsDir)s %(pickCmd)s --cc_cutoff %%(threshold) --min_dist %%(mindist)
-            convertCommand = %(convertCmd)s --coordinates --from gautomatch --to xmipp --input  %(micsSqlite)s --output %(coordsDir)s
-            """ % args)
-
-        f.close()
+            else:
+                f.write("""
+                parameters = threshold,mindist
+                threshold.value =  %(threshold)s
+                threshold.label = Threshold
+                threshold.help = Particles with CCC above the threshold will be picked
+                mindist.value = %(mindist)s
+                mindist.label = Min search distance
+                mindist.help = Use value of 0.9~1.1X diameter
+                autopickCommand = %(pickScript)s %%(micrograph) %(refStack)s %(coordsDir)s %(pickCmd)s --cc_cutoff %%(threshold) --min_dist %%(mindist)
+                convertCommand = %(convertCmd)s --coordinates --from gautomatch --to xmipp --input  %(micsSqlite)s --output %(coordsDir)s
+                """ % args)
 
         process = CoordinatesObjectView(project, micFn, coordsDir, prot,
                                         mode=CoordinatesObjectView.MODE_AUTOMATIC,

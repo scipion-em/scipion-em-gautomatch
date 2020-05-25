@@ -6,7 +6,7 @@
 # *
 # * This program is free software; you can redistribute it and/or modify
 # * it under the terms of the GNU General Public License as published by
-# * the Free Software Foundation; either version 2 of the License, or
+# * the Free Software Foundation; either version 3 of the License, or
 # * (at your option) any later version.
 # *
 # * This program is distributed in the hope that it will be useful,
@@ -26,8 +26,9 @@
 
 import os
 
-import pyworkflow.em
+import pwem
 import pyworkflow.utils as pwutils
+from pwem.emlib.image import ImageHandler
 
 from .constants import *
 
@@ -36,7 +37,7 @@ _logo = "gautomatch_logo.png"
 _references = ['Zhang']
 
 
-class Plugin(pyworkflow.em.Plugin):
+class Plugin(pwem.Plugin):
     _homeVar = GAUTOMATCH_HOME
     _pathVars = [GAUTOMATCH_HOME]
     _supportedVersions = ['0.53', '0.56']
@@ -60,7 +61,7 @@ class Plugin(pyworkflow.em.Plugin):
         """ Return the environ settings to run Gautomatch programs. """
         environ = pwutils.Environ(os.environ)
         # Take Scipion CUDA library path
-        cudaLib = environ.getFirst((GAUTOMATCH_CUDA_LIB, CUDA_LIB))
+        cudaLib = environ.get(GAUTOMATCH_CUDA_LIB, pwem.Config.CUDA_LIB)
         environ.addLibrary(cudaLib)
 
         return environ
@@ -80,7 +81,7 @@ class Plugin(pyworkflow.em.Plugin):
         """
         args = ''
 
-        ih = pyworkflow.em.ImageHandler()
+        ih = ImageHandler()
 
         for micName in micNameList:
             # We convert the input micrograph on demand if not in .mrc
@@ -107,6 +108,3 @@ class Plugin(pyworkflow.em.Plugin):
             outMic = os.path.join(workDir, pwutils.replaceBaseExt(micName, 'mrc'))
             # After picking we can remove the temporary file.
             pwutils.cleanPath(outMic)
-
-
-pyworkflow.em.Domain.registerPlugin(__name__)
