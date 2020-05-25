@@ -8,7 +8,7 @@
 # *
 # * This program is free software; you can redistribute it and/or modify
 # * it under the terms of the GNU General Public License as published by
-# * the Free Software Foundation; either version 2 of the License, or
+# * the Free Software Foundation; either version 3 of the License, or
 # * (at your option) any later version.
 # *
 # * This program is distributed in the hope that it will be useful,
@@ -25,8 +25,9 @@
 # *  e-mail address 'scipion@cnb.csic.es'
 # *
 # **************************************************************************
-
-from pyworkflow.em import *
+from pwem.protocols import (ProtImportAverages, ProtImportMicrographs,
+                            ProtImportCoordinates)
+from pyworkflow.utils import magentaStr
 from pyworkflow.tests import *
 
 from gautomatch.protocols import *
@@ -40,6 +41,7 @@ class TestGautomatchBase(BaseTest):
     @classmethod
     def runImportAverages(cls):
         """ Run an Import averages protocol. """
+        print(magentaStr("\n==> Importing data - class averages:"))
         cls.protImportAvg = cls.newProtocol(ProtImportAverages, 
                                             objLabel='import averages (klh)',
                                             filesPath=cls.ds.getFile('templates/*.mrc'), 
@@ -52,6 +54,7 @@ class TestGautomatchBase(BaseTest):
     def runImportMicrograph(cls, pattern, samplingRate, voltage,
                             magnification, sphericalAberration):
         """ Run an Import micrograph protocol. """
+        print(magentaStr("\n==> Importing data - micrographs:"))
         cls.protImport = cls.newProtocol(ProtImportMicrographs,
                                          objLabel='import mics (klh)', 
                                          samplingRateMode=0, 
@@ -75,6 +78,7 @@ class TestGautomatchBase(BaseTest):
     @classmethod
     def runImportCoords(cls):
         """ Run an Import coords protocol. """
+        print(magentaStr("\n==> Importing data - coordinates:"))
         cls.protImportCoords = cls.newProtocol(ProtImportCoordinates,
                                                importFrom=ProtImportCoordinates.IMPORT_FROM_XMIPP,
                                                objLabel='import bad coords',
@@ -85,36 +89,38 @@ class TestGautomatchBase(BaseTest):
         cls.launchProtocol(cls.protImportCoords)
         return cls.protImportCoords
 
-    def runPicking1(cls):
+    def runPicking1(self):
         """ Run a particle picking. """
+        print(magentaStr("\n==> Testing gautomatch - auto picking:"))
         protGM = ProtGautomatch(objLabel='Gautomatch auto-picking (klh)',
-                               invertTemplatesContrast=True,
-                               threshold=0.18,
-                               particleSize=250,
-                               advanced='False',
-                               boxSize=150,
-                               localSigmaCutoff=2.0)
-        protGM.inputMicrographs.set(cls.protImportMics.outputMicrographs)
-        protGM.inputReferences.set(cls.protImportAvgs.outputAverages)
-        cls.launchProtocol(protGM)
-        cls.assertSetSize(protGM.getCoords(), msg='Picking1 didn\'t generate output coordinates')
-        return protGM
-
-    def runPicking2(cls):
-        """ Run a particle picking with excludsive options. """
-        protGM2 = ProtGautomatch(objLabel='Gautomatch auto-picking 2 (klh)',
                                 invertTemplatesContrast=True,
                                 threshold=0.18,
                                 particleSize=250,
                                 advanced='False',
                                 boxSize=150,
-                                localSigmaCutoff=2.0,
-                                exclusive=True)
-        protGM2.inputMicrographs.set(cls.protImportMics.outputMicrographs)
-        protGM2.inputReferences.set(cls.protImportAvgs.outputAverages)
-        protGM2.inputBadCoords.set(cls.protImportCoords.outputCoordinates)
-        cls.launchProtocol(protGM2)
-        cls.assertSetSize(protGM2.getCoords(), msg='Picking2 didn\'t generate output coordinates ')
+                                localSigmaCutoff=2.0)
+        protGM.inputMicrographs.set(self.protImportMics.outputMicrographs)
+        protGM.inputReferences.set(self.protImportAvgs.outputAverages)
+        self.launchProtocol(protGM)
+        self.assertSetSize(protGM.getCoords(), msg='Picking1 didn\'t generate output coordinates')
+        return protGM
+
+    def runPicking2(self):
+        """ Run a particle picking with exclusive options. """
+        print(magentaStr("\n==> Testing gautomatch - auto-picking with bad coords:"))
+        protGM2 = ProtGautomatch(objLabel='Gautomatch auto-picking 2 (klh)',
+                                 invertTemplatesContrast=True,
+                                 threshold=0.18,
+                                 particleSize=250,
+                                 advanced='False',
+                                 boxSize=150,
+                                 localSigmaCutoff=2.0,
+                                 exclusive=True)
+        protGM2.inputMicrographs.set(self.protImportMics.outputMicrographs)
+        protGM2.inputReferences.set(self.protImportAvgs.outputAverages)
+        protGM2.inputBadCoords.set(self.protImportCoords.outputCoordinates)
+        self.launchProtocol(protGM2)
+        self.assertSetSize(protGM2.getCoords(), msg='Picking2 didn\'t generate output coordinates ')
         return protGM2
 
 

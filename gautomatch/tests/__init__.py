@@ -1,0 +1,2 @@
+
+from .test_protocols_gautomatch import TestGautomatchBase, TestGautomatchAutomaticPicking

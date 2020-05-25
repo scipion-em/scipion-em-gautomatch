@@ -8,7 +8,7 @@
 # *
 # * This program is free software; you can redistribute it and/or modify
 # * it under the terms of the GNU General Public License as published by
-# * the Free Software Foundation; either version 2 of the License, or
+# * the Free Software Foundation; either version 3 of the License, or
 # * (at your option) any later version.
 # *
 # * This program is distributed in the hope that it will be useful,
@@ -29,10 +29,10 @@
 import os
 from collections import OrderedDict
 
-import pyworkflow.em as em
-import pyworkflow.em.metadata as md
-from pyworkflow.em.constants import NO_INDEX
-from pyworkflow.em.convert import ImageHandler
+import pwem.emlib.metadata as md
+from pwem.constants import NO_INDEX
+from pwem.emlib.image import ImageHandler
+from pwem.objects import Coordinate
 from pyworkflow.object import ObjectWrap
 import pyworkflow.utils as pwutils
 
@@ -62,7 +62,7 @@ def rowToObject(row, obj, attrDict, extraLabels=[]):
     """
     obj.setEnabled(row.getValue(md.RLN_IMAGE_ENABLED, 1) > 0)
 
-    for attr, label in attrDict.iteritems():
+    for attr, label in attrDict.items():
         value = row.getValue(label)
         if not hasattr(obj, attr):
             setattr(obj, attr, ObjectWrap(value))
@@ -81,7 +81,7 @@ def rowToCoordinate(coordRow):
     """ Create a Coordinate from a row of a meta """
     # Check that all required labels are present in the row
     if coordRow.containsAll(COOR_DICT):
-        coord = em.Coordinate()
+        coord = Coordinate()
         rowToObject(coordRow, coord, COOR_DICT, extraLabels=COOR_EXTRA_LABELS)
         # Gautomatch starts _rlnClassNumber at 0, but relion at 1
         # so let's increment its value
@@ -136,7 +136,7 @@ def readCoordinates(mic, fileName, coordsSet):
             coordsSet.append(coord)
 
 
-class CoordStarWriter():
+class CoordStarWriter:
     """ Helper class to write a star file containing coordinates. """
     # Gautomatch cannot read default star header (with # XMIPP_STAR_1 *),
     # so we write directly to file
@@ -301,7 +301,7 @@ def writeSetOfMicrographs(micSet, filename):
     for img in micSet:
         objId = mdata.addObject()
         imgRow = md.Row()
-        imgRow.setValue(md.MDL_ITEM_ID, long(objId))
+        imgRow.setValue(md.MDL_ITEM_ID, int(objId))
 
         index, fname = img.getLocation()
         fn = ImageHandler.locationToXmipp((index, fname))

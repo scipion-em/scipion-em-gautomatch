@@ -6,7 +6,7 @@
 # *
 # * This program is free software; you can redistribute it and/or modify
 # * it under the terms of the GNU General Public License as published by
-# * the Free Software Foundation; either version 2 of the License, or
+# * the Free Software Foundation; either version 3 of the License, or
 # * (at your option) any later version.
 # *
 # * This program is distributed in the hope that it will be useful,
@@ -29,8 +29,9 @@ from glob import glob
 
 import pyworkflow.utils as pwutils
 import pyworkflow.protocol.params as params
-import pyworkflow.em as em
-from pyworkflow.em.constants import RELATION_CTF
+from pwem.constants import RELATION_CTF
+from pwem.objects import SetOfCoordinates
+from pwem.protocols import ProtParticlePickingAuto
 from pyworkflow.utils.properties import Message
 from pyworkflow.protocol import STEPS_PARALLEL
 
@@ -40,8 +41,8 @@ from gautomatch.convert import (readSetOfCoordinates, writeDefectsFile,
 from gautomatch.constants import MICS_ALL, MICS_SUBSET
 
 
-class ProtGautomatch(em.ProtParticlePickingAuto):
-    """ Automated particle picker for SPA. Uses Gautomatch.
+class ProtGautomatch(ProtParticlePickingAuto):
+    """ Automated particle picker for SPA.
 
     Gautomatch is a GPU accelerated program for accurate, fast, flexible and
     fully automatic particle picking from cryo-EM micrographs with or without
@@ -50,16 +51,17 @@ class ProtGautomatch(em.ProtParticlePickingAuto):
     _label = 'auto-picking'
 
     def __init__(self, **kwargs):
-        em.ProtParticlePickingAuto.__init__(self, **kwargs)
+        ProtParticlePickingAuto.__init__(self, **kwargs)
         self.stepsExecutionMode = STEPS_PARALLEL
 
-    # --------------------------- DEFINE param functions -----------------------
+    # --------------------------- DEFINE param functions ----------------------
     def _defineParams(self, form):
 
-        em.ProtParticlePickingAuto._defineParams(self, form)
+        ProtParticlePickingAuto._defineParams(self, form)
         form.addParam('inputReferences', params.PointerParam,
                       pointerClass='SetOfAverages',
-                      label='Input References', important=True, allowsNull=True,
+                      label='Input References', important=True,
+                      allowsNull=True,
                       help="Template images (2D class averages or "
                            "reprojections from a reference volume) to be used "
                            "in picking.\n "
@@ -77,7 +79,8 @@ class ProtGautomatch(em.ProtParticlePickingAuto):
         form.addParam('angStep', params.IntParam, default=5,
                       label='Angular step size',
                       help='Angular step size for picking, in degrees')
-        form.addParam('micrographsSelection', params.EnumParam, default=MICS_ALL,
+        form.addParam('micrographsSelection', params.EnumParam,
+                      default=MICS_ALL,
                       choices=['All', 'Subset'],
                       display=params.EnumParam.DISPLAY_HLIST,
                       label='Micrographs for wizard',
@@ -88,9 +91,9 @@ class ProtGautomatch(em.ProtParticlePickingAuto):
                            'defocus values (where micrographs will be '
                            'taken from different defocus). ')
         form.addParam('micrographsNumber', params.IntParam, default='10',
-                       condition='micrographsSelection==%d' % MICS_SUBSET,
+                      condition='micrographsSelection==%d' % MICS_SUBSET,
                       label='Micrographs for optimization:',
-                      help='Select the number of micrographs that you want'
+                      help='Select the number of micrographs that you want '
                            'to be used for the parameters optimization. ')
         form.addParam('ctfRelations', params.RelationParam,
                       relationName=RELATION_CTF,
@@ -105,14 +108,16 @@ class ProtGautomatch(em.ProtParticlePickingAuto):
                       label='Threshold',
                       help='Particles with CCC above the threshold will be '
                            'picked')
-        form.addParam('particleSize', params.IntParam, default=250,
+        form.addParam('particleSize', params.IntParam, default=-1,
                       label='Particle radius (A)',
-                      help="Particle radius in Angstrom")
+                      help="Particle radius in Angstrom. Default -1 means "
+                           "it will be equal to 75% of references size if they "
+                           "were provided, otherwise 250 A.")
         form.addHidden(params.GPU_LIST, params.StringParam, default='0',
-                      expertLevel=params.LEVEL_ADVANCED,
-                      label="Choose GPU IDs",
-                      help="GPU ID, normally it is 0. "
-                           "TODO: Document better GPU IDs and threads. ")
+                       expertLevel=params.LEVEL_ADVANCED,
+                       label="Choose GPU IDs",
+                       help="GPU ID, normally it is 0. "
+                            "TODO: Document better GPU IDs and threads. ")
 
         form.addSection(label='Advanced')
         form.addParam('advanced', params.BooleanParam, default=True,
@@ -120,7 +125,7 @@ class ProtGautomatch(em.ProtParticlePickingAuto):
                       help="By default, the program will optimize advanced "
                            "parameters by itself, however if you want to "
                            "modify them, select No")
-        form.addParam('boxSize', params.IntParam, default=128,
+        form.addParam('boxSize', params.IntParam, default=-1,
                       label='Box size (pix)', condition='not advanced',
                       help="Box size, in pixels; a suggested value will be "
                            "automatically calculated using pixel size and "
@@ -301,7 +306,8 @@ class ProtGautomatch(em.ProtParticlePickingAuto):
 
         self._defineStreamingParams(form)
 
-        # Allow many threads if we can put more than one in a GPU or several GPUs
+        # Allow many threads if we can put more than one in a GPU
+        # or several GPUs
         form.addParallelSection(threads=1, mpi=1)
 
     # --------------------------- INSERT steps functions ----------------------
@@ -316,17 +322,18 @@ class ProtGautomatch(em.ProtParticlePickingAuto):
             converted otherwise.
         References: will always be converted to '.mrcs' format
         """
-        pwutils.makePath(self.getMicrographsDir())  # put output and mics in extra dir
+        # put output and mics in extra dir
+        pwutils.makePath(self.getMicrographsDir())
         # We will always convert the templates to mrcs stack
         self.convertReferences(self._getReferencesFn())
         # Write defects star file if necessary
         if self.exclusive and self.inputDefects.get():
             writeDefectsFile(self.inputDefects.get(), self._getDefectsFn())
 
-    def _pickMicrograph(self, mic, args):
-        self._pickMicrographList([mic], args)
+    def _pickMicrograph(self, mic, *args):
+        self._pickMicrographList([mic], *args)
 
-    def _pickMicrographList(self, micList, args):
+    def _pickMicrographList(self, micList, *args):
         """ Pick several micrographs at once, probably a bit more efficient."""
         micPath = self._getMicrographDir(micList[0])
         if len(micList) > 1:
@@ -350,12 +357,19 @@ class ProtGautomatch(em.ProtParticlePickingAuto):
         gautomatch.Plugin.runGautomatch(micFnList,
                                         self._getReferencesFn(),
                                         micPath,
-                                        args,
+                                        *args,
                                         env=gautomatch.Plugin.getEnviron(),
                                         runJob=self.runJob)
 
         # Move output from micPath (tmp) to extra
         for p in ['*.star', '*.box']:
+            for f in glob(os.path.join(micPath, p)):
+                pwutils.moveFile(f, self.getMicrographsDir())
+
+        # Move debug output to extra
+        debugSuffixes = ['*_ccmax.mrc', '*_pref.mrc', '*_bg.mrc',
+                         '*_bgfree.mrc', '*_lsigma.mrc', '*_mask.mrc']
+        for p in debugSuffixes:
             for f in glob(os.path.join(micPath, p)):
                 pwutils.moveFile(f, self.getMicrographsDir())
 
@@ -370,11 +384,10 @@ class ProtGautomatch(em.ProtParticlePickingAuto):
         if not self.localAvgMin < self.localAvgMax:
             errors.append('Wrong values of local average cut-off!')
 
-        if self.exclusive:
-            if not self.inputBadCoords.get() and not self.inputDefects.get():
-                errors.append("You have to provide at least "
-                              "one set of coordinates ")
-                errors.append("for exclusive picking!")
+        if self.exclusive and not self.inputBadCoords.get() and not self.inputDefects.get():
+            errors.append("You have to provide at least "
+                          "one set of coordinates ")
+            errors.append("for exclusive picking!")
 
         nprocs = max(self.numberOfMpi.get(), self.numberOfThreads.get())
 
@@ -431,9 +444,10 @@ class ProtGautomatch(em.ProtParticlePickingAuto):
         rejectedCoordSqlite = self._getPath('coordinates_rejected.sqlite')
         
         if not os.path.exists(rejectedCoordSqlite):
-            coordSetAux = self._createSetOfCoordinates(micSet, suffix='_rejected')
+            coordSetAux = self._createSetOfCoordinates(micSet,
+                                                       suffix='_rejected')
         else:
-            coordSetAux = em.SetOfCoordinates(filename=rejectedCoordSqlite)
+            coordSetAux = SetOfCoordinates(filename=rejectedCoordSqlite)
             coordSetAux.enableAppend()
            
         coordSetAux.setBoxSize(self._getBoxSize())
@@ -485,7 +499,7 @@ class ProtGautomatch(em.ProtParticlePickingAuto):
         """
         args = ' --apixM %0.2f' % self.inputMicrographs.get().getSamplingRate()
         args += ' --ang_step %d' % self.angStep
-        args += ' --diameter %d' % (2 * self.particleSize.get())
+        args += ' --diameter %d' % self._getDiameter()
         args += ' --lp %d' % self.lowPass
         args += ' --hp %d' % self.highPass
         args += ' --gid %(GPU)s'
@@ -501,7 +515,7 @@ class ProtGautomatch(em.ProtParticlePickingAuto):
 
         if not self.advanced:
             args += ' --speed %d' % self.speed
-            args += ' --boxsize %d' % self.boxSize
+            args += ' --boxsize %d' % self._getBoxSize()
             if mindist:
                 args += ' --min_dist %d' % self.minDist
             args += ' --lsigma_cutoff %0.2f' % self.localSigmaCutoff
@@ -574,3 +588,17 @@ class ProtGautomatch(em.ProtParticlePickingAuto):
         if self.inputReferences.get():
             return self._getExtraPath('references.mrcs')
         return None
+
+    def _getDiameter(self):
+        """ Return 75% of references size"""
+        refs = self.inputReferences.get()
+
+        if self.particleSize and self.particleSize > 0:
+            return 2 * self.particleSize.get()
+        else:
+            if refs:
+                pix = refs.getSamplingRate()
+                dim = refs.getXDim()
+                return int(0.75 * dim * pix)
+            else:
+                return 250
