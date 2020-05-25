@@ -87,7 +87,7 @@ class GautomatchBandpassWizard(emwiz.FilterParticlesWizard):
         _objs = self._getParameters(protocol)['input']
         return emwiz.FilterParticlesWizard._getListProvider(self, _objs)
 
-    def show(self, form, *args):
+    def show(self, form):
         protocol = form.protocol
         provider = self._getProvider(protocol)
         params = self._getParameters(protocol)
@@ -119,7 +119,7 @@ class GautomatchBandpassWizard(emwiz.FilterParticlesWizard):
 class GautomatchPickerWizard(emwiz.EmWizard):
     _targets = [(ProtGautomatch, ['threshold'])]
 
-    def show(self, form, *args):
+    def show(self, form):
         prot = form.protocol
         micSet = prot.getInputMicrographs()
 
