@@ -45,7 +45,7 @@ class Plugin(pwem.Plugin):
     @classmethod
     def _defineVariables(cls):
         cls._defineEmVar(GAUTOMATCH_HOME, 'gautomatch-0.56')
-        cls._defineVar(GAUTOMATCH, 'Gautomatch_v0.56_sm60_cu8.0')
+        cls._defineVar(GAUTOMATCH, 'Gautomatch_v0.56_sm30-75_cu10.1')
 
     @classmethod
     def defineBinaries(cls, env):
