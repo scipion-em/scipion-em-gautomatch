@@ -1,10 +1,9 @@
-1.0.10:
-    - binaries updated
+3.0.10 - changed version to reflect Scipion 3 support
+1.0.10 - binaries updated
 1.0.8 - Migrated to python3
 1.0.7 - run in tmp folder, fix batch processing, clean up after done
 1.0.6 - fixed wizard (thanks @pconesa)
-1.0.5:
-    - Updated binary version and fixed tests.
+1.0.5 - Updated binary version and fixed tests.
 1.0.4 - Include protocol.conf to create the source distribution
 1.0.3 - Fix binary path, add protocols.conf
 1.0.2 - Fix getProgram and environ
