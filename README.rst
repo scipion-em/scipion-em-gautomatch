@@ -2,7 +2,7 @@
 Gautomatch plugin
 =================
 
-This plugin provide a wrapper around `Gautomatch picker <https://www.mrc-lmb.cam.ac.uk/kzhang/>`_.
+This plugin provide a wrapper around `Gautomatch picker <https://www2.mrc-lmb.cam.ac.uk/research/locally-developed-software/zhang-software/>`_.
 
 +--------------+----------------+--------------------+
 | prod: |prod| | devel: |devel| | support: |support| |
