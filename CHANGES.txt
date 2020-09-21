@@ -1,3 +1,4 @@
+3.0.11 - add missing files to pypi distr
 3.0.10 - changed version to reflect Scipion 3 support
 1.0.10 - binaries updated
 1.0.8 - Migrated to python3
