@@ -35,6 +35,7 @@ from .constants import *
 
 _logo = "gautomatch_logo.png"
 _references = ['Zhang']
+_url = "https://github.com/scipion-em/scipion-em-gautomatch"
 
 
 class Plugin(pwem.Plugin):
