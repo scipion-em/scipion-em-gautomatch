@@ -28,6 +28,7 @@
 import sys
 
 import gautomatch
+from pyworkflow import Config
 
 
 if __name__ == '__main__':
@@ -35,5 +36,5 @@ if __name__ == '__main__':
     refStack = sys.argv[2]
     workDir = sys.argv[3]
     args = " ".join(sys.argv[4:])
-
+    Config.getDomain().getPlugins()
     gautomatch.Plugin.runGautomatch([micName], refStack, workDir, args)

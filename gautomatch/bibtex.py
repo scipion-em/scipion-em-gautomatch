@@ -34,9 +34,9 @@
   Pages      = "",
   Volume     = "",
   Number     = "",
-  Doi        = "http://www.mrc-lmb.cam.ac.uk/kzhang/Gautomatch",
+  Doi        = "https://www2.mrc-lmb.cam.ac.uk/research/locally-developed-software/zhang-software/#gauto",
   Note	     = "unpublished",
-  Url        = "http://www.mrc-lmb.cam.ac.uk/kzhang/Gautomatch"
+  Url        = "https://www2.mrc-lmb.cam.ac.uk/research/locally-developed-software/zhang-software/#gauto"
 }
 
 """

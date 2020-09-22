@@ -174,7 +174,7 @@ class GautomatchPickerWizard(emwiz.EmWizard):
         # Let use the first selected gpu for the wizard
         pickCmd = prot.getArgs(threshold=False,
                                mindist=False) % {'GPU': gpus[0]}
-        convertCmd = pwem.join('cmd', 'convert.py')
+        convertCmd = "emconvert"
 
         args = {
             "pickScript": "python " + pickScript,

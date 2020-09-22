@@ -4,3 +4,8 @@ include *.rst
 # Include the license file
 include LICENSE
 
+# Include the changelog
+include CHANGES.txt
+
+# Include conf file
+include gautomatch/protocols.conf
