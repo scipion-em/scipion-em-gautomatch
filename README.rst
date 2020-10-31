@@ -4,6 +4,27 @@ Gautomatch plugin
 
 This plugin provide a wrapper around `Gautomatch picker <https://www2.mrc-lmb.cam.ac.uk/research/locally-developed-software/zhang-software/>`_.
 
+.. image:: https://img.shields.io/pypi/v/scipion-em-gautomatch.svg
+        :target: https://pypi.python.org/pypi/scipion-em-gautomatch
+        :alt: PyPI release
+
+.. image:: https://img.shields.io/pypi/l/scipion-em-gautomatch.svg
+        :target: https://pypi.python.org/pypi/scipion-em-gautomatch
+        :alt: License
+
+.. image:: https://img.shields.io/pypi/pyversions/scipion-em-gautomatch.svg
+        :target: https://pypi.python.org/pypi/scipion-em-gautomatch
+        :alt: Supported Python versions
+
+.. image:: https://img.shields.io/sonar/quality_gate/scipion-em_scipion-em-gautomatch?server=https%3A%2F%2Fsonarcloud.io
+        :target: https://sonarcloud.io/dashboard?id=scipion-em_scipion-em-gautomatch
+        :alt: SonarCloud quality gate
+
+.. image:: https://img.shields.io/pypi/dm/scipion-em-gautomatch
+        :target: https://pypi.python.org/pypi/scipion-em-gautomatch
+        :alt: Downloads
+
+
 +--------------+----------------+--------------------+
 | prod: |prod| | devel: |devel| | support: |support| |
 +--------------+----------------+--------------------+
