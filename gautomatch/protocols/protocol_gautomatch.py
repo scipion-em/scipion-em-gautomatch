@@ -114,10 +114,7 @@ class ProtGautomatch(ProtParticlePickingAuto):
                            "it will be equal to 75% of references size if they "
                            "were provided, otherwise 250 A.")
         form.addHidden(params.GPU_LIST, params.StringParam, default='0',
-                       expertLevel=params.LEVEL_ADVANCED,
-                       label="Choose GPU IDs",
-                       help="GPU ID, normally it is 0. "
-                            "TODO: Document better GPU IDs and threads. ")
+                       label="Choose GPU IDs")
 
         form.addSection(label='Advanced')
         form.addParam('advanced', params.BooleanParam, default=True,
