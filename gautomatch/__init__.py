@@ -33,20 +33,22 @@ from pwem.emlib.image import ImageHandler
 from .constants import *
 
 
+__version__ = '3.0.12'
 _logo = "gautomatch_logo.png"
 _references = ['Zhang']
-_url = "https://github.com/scipion-em/scipion-em-gautomatch"
 
 
 class Plugin(pwem.Plugin):
     _homeVar = GAUTOMATCH_HOME
     _pathVars = [GAUTOMATCH_HOME]
     _supportedVersions = ['0.53', '0.56']
+    _url = "https://github.com/scipion-em/scipion-em-gautomatch"
 
     @classmethod
     def _defineVariables(cls):
         cls._defineEmVar(GAUTOMATCH_HOME, 'gautomatch-0.56')
         cls._defineVar(GAUTOMATCH, 'Gautomatch_v0.56_sm30-75_cu10.1')
+        cls._defineVar(GAUTOMATCH_CUDA_LIB, pwem.Config.CUDA_LIB)
 
     @classmethod
     def defineBinaries(cls, env):
@@ -61,7 +63,7 @@ class Plugin(pwem.Plugin):
     def getEnviron(cls):
         """ Return the environ settings to run Gautomatch programs. """
         environ = pwutils.Environ(os.environ)
-        # Take Scipion CUDA library path
+        # Get Gautomatch CUDA library path if defined
         cudaLib = environ.get(GAUTOMATCH_CUDA_LIB, pwem.Config.CUDA_LIB)
         environ.addLibrary(cudaLib)
 

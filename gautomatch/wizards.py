@@ -171,15 +171,14 @@ class GautomatchPickerWizard(emwiz.EmWizard):
         pickerConfig = os.path.join(coordsDir, 'picker.conf')
         pickScript = os.path.join(os.path.dirname(__file__), 'run_gautomatch.py')
 
-        # Let use the first selected gpu for the wizard
+        # Let's use the first selected gpu for the wizard
         pickCmd = prot.getArgs(threshold=False,
                                mindist=False) % {'GPU': gpus[0]}
-        convertCmd = "emconvert"
 
         args = {
             "pickScript": "python " + pickScript,
             "pickCmd": pickCmd,
-            "convertCmd": convertCmd,
+            "convertCmd": "emconvert",
             'coordsDir': coordsDir,
             'micsSqlite': micSet.getFileName(),
             'threshold': prot.threshold.get(),
@@ -207,10 +206,10 @@ class GautomatchPickerWizard(emwiz.EmWizard):
                 threshold.label = Threshold
                 threshold.help = Particles with CCC above the threshold will be picked
                 mindist.value = %(mindist)s
-                mindist.label = Min search distance
-                mindist.help = Use value of 0.9~1.1X diameter
+                mindist.label = Min distance (A)
+                mindist.help = Use value of 0.9~1.1X particle diameter
                 autopickCommand = %(pickScript)s %%(micrograph) %(refStack)s %(coordsDir)s %(pickCmd)s --cc_cutoff %%(threshold) --min_dist %%(mindist)
-                convertCommand = %(convertCmd)s --coordinates --from gautomatch --to xmipp --input  %(micsSqlite)s --output %(coordsDir)s
+                convertCommand = %(convertCmd)s --coordinates --from gautomatch --to xmipp --input %(micsSqlite)s --output %(coordsDir)s
                 """ % args)
 
         process = CoordinatesObjectView(project, micFn, coordsDir, prot,
