@@ -351,26 +351,30 @@ class ProtGautomatch(ProtParticlePickingAuto):
                                         % pwutils.removeBaseExt(micFn))
                 writeMicCoords(mic, badCoords.iterCoordinates(mic), fnCoords)
 
-        gautomatch.Plugin.runGautomatch(micFnList,
-                                        self._getReferencesFn(),
-                                        micPath,
-                                        *args,
-                                        env=gautomatch.Plugin.getEnviron(),
-                                        runJob=self.runJob)
+        try:
+            gautomatch.Plugin.runGautomatch(micFnList,
+                                            self._getReferencesFn(),
+                                            micPath,
+                                            *args,
+                                            env=gautomatch.Plugin.getEnviron(),
+                                            runJob=self.runJob)
 
-        # Move output from micPath (tmp) to extra
-        for p in ['*.star', '*.box']:
-            for f in glob(os.path.join(micPath, p)):
+            # Move output from micPath (tmp) to extra
+            for f in glob(os.path.join(micPath, '*.star')):
                 pwutils.moveFile(f, self.getMicrographsDir())
 
-        # Move debug output to extra
-        debugSuffixes = ['*_ccmax.mrc', '*_pref.mrc', '*_bg.mrc',
-                         '*_bgfree.mrc', '*_lsigma.mrc', '*_mask.mrc']
-        for p in debugSuffixes:
-            for f in glob(os.path.join(micPath, p)):
-                pwutils.moveFile(f, self.getMicrographsDir())
+            # Move debug output to extra
+            debugSuffixes = ['*_ccmax.mrc', '*_pref.mrc', '*_bg.mrc',
+                             '*_bgfree.mrc', '*_lsigma.mrc', '*_mask.mrc']
+            for p in debugSuffixes:
+                for f in glob(os.path.join(micPath, p)):
+                    pwutils.moveFile(f, self.getMicrographsDir())
 
-        pwutils.cleanPath(micPath)
+            pwutils.cleanPath(micPath)
+
+        except Exception as e:
+            self.error("ERROR: Gautomatch has failed for %s. %s" % (
+                micFnList, e))
 
     def createOutputStep(self):
         pass

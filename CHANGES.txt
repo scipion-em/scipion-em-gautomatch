@@ -1,4 +1,7 @@
-3.0.13 - WIP
+3.0.13:
+    - better error handling
+    - use abs link for tmp files
+    - omit output box files
 3.0.12 - add Github actions
 3.0.11 - add missing files to pypi distr
 3.0.10 - changed version to reflect Scipion 3 support

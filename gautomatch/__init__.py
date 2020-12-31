@@ -90,7 +90,7 @@ class Plugin(pwem.Plugin):
             # We convert the input micrograph on demand if not in .mrc
             outMic = os.path.join(workDir, pwutils.replaceBaseExt(micName, 'mrc'))
             if micName.endswith('.mrc'):
-                pwutils.createLink(micName, outMic)
+                pwutils.createAbsLink(os.path.abspath(micName), outMic)
             else:
                 ih.convert(micName, outMic)
 
