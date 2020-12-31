@@ -28,9 +28,9 @@
 from pwem.protocols import (ProtImportAverages, ProtImportMicrographs,
                             ProtImportCoordinates)
 from pyworkflow.utils import magentaStr
-from pyworkflow.tests import *
+from pyworkflow.tests import BaseTest, DataSet, setupTestProject
 
-from gautomatch.protocols import *
+from ..protocols import *
 
 
 class TestGautomatchBase(BaseTest):

@@ -26,7 +26,6 @@
 
 import os
 
-import pwem
 import pwem.wizards as emwiz
 import pyworkflow.utils as pwutils
 import pyworkflow.gui.dialog as dialog
@@ -115,6 +114,7 @@ class GautomatchBandpassWizard(emwiz.FilterParticlesWizard):
 # =============================================================================
 # PICKER
 # =============================================================================
+
 
 class GautomatchPickerWizard(emwiz.EmWizard):
     _targets = [(ProtGautomatch, ['threshold'])]

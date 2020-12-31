@@ -29,11 +29,11 @@ from glob import glob
 
 import pyworkflow.utils as pwutils
 import pyworkflow.protocol.params as params
+from pyworkflow.utils.properties import Message
+from pyworkflow.protocol import STEPS_PARALLEL
 from pwem.constants import RELATION_CTF
 from pwem.objects import SetOfCoordinates
 from pwem.protocols import ProtParticlePickingAuto
-from pyworkflow.utils.properties import Message
-from pyworkflow.protocol import STEPS_PARALLEL
 
 import gautomatch
 from gautomatch.convert import (readSetOfCoordinates, writeDefectsFile,
