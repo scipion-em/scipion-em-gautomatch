@@ -33,7 +33,7 @@ from pwem.emlib.image import ImageHandler
 from .constants import *
 
 
-__version__ = '3.0.12'
+__version__ = '3.0.13'
 _logo = "gautomatch_logo.png"
 _references = ['Zhang']
 
@@ -64,7 +64,7 @@ class Plugin(pwem.Plugin):
         """ Return the environ settings to run Gautomatch programs. """
         environ = pwutils.Environ(os.environ)
         # Get Gautomatch CUDA library path if defined
-        cudaLib = environ.get(GAUTOMATCH_CUDA_LIB, pwem.Config.CUDA_LIB)
+        cudaLib = cls.getVar(GAUTOMATCH_CUDA_LIB, pwem.Config.CUDA_LIB)
         environ.addLibrary(cudaLib)
 
         return environ
@@ -90,7 +90,7 @@ class Plugin(pwem.Plugin):
             # We convert the input micrograph on demand if not in .mrc
             outMic = os.path.join(workDir, pwutils.replaceBaseExt(micName, 'mrc'))
             if micName.endswith('.mrc'):
-                pwutils.createLink(micName, outMic)
+                pwutils.createAbsLink(os.path.abspath(micName), outMic)
             else:
                 ih.convert(micName, outMic)
 
