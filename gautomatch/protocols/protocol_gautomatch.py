@@ -347,7 +347,7 @@ class ProtGautomatch(ProtParticlePickingAuto):
             badCoords = self.inputBadCoords.get()
 
             if self.exclusive and badCoords:
-                fnCoords = pwutils.join(micPath, '%s_rubbish.star'
+                fnCoords = os.path.join(micPath, '%s_rubbish.star'
                                         % pwutils.removeBaseExt(micFn))
                 writeMicCoords(mic, badCoords.iterCoordinates(mic), fnCoords)
 
@@ -579,7 +579,7 @@ class ProtGautomatch(ProtParticlePickingAuto):
         """
         template = pwutils.removeBaseExt(fn) + key + '.mrc'
 
-        return pwutils.join(self.getMicrographsDir(), template)
+        return os.path.join(self.getMicrographsDir(), template)
 
     def _getDefectsFn(self):
         """ Return the filename for the defects star file. """
