@@ -28,6 +28,7 @@ import os
 from glob import glob
 
 import pyworkflow.utils as pwutils
+from pyworkflow.constants import PROD
 import pyworkflow.protocol.params as params
 from pyworkflow.utils.properties import Message
 from pyworkflow.protocol import STEPS_PARALLEL
@@ -49,6 +50,7 @@ class ProtGautomatch(ProtParticlePickingAuto):
     templates.
     """
     _label = 'auto-picking'
+    _devStatus = PROD
 
     def __init__(self, **kwargs):
         ProtParticlePickingAuto.__init__(self, **kwargs)
