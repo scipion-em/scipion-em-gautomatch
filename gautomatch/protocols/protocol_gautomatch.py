@@ -560,8 +560,13 @@ class ProtGautomatch(ProtParticlePickingAuto):
     def _getBoxSize(self):
         if self.boxSize and self.boxSize > 0:
             return self.boxSize.get()
-        else:
-            return self.inputReferences.get().getXDim() or 100
+
+        inputRefs = self.inputReferences.get()
+
+        if inputRefs and inputRefs.getXDim():
+            return inputRefs.getXDim()
+
+        return 100
 
     def _getMicrographDir(self, mic):
         """ Return an unique dir name for results of the micrograph. """
