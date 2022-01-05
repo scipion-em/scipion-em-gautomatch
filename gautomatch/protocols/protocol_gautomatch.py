@@ -125,7 +125,7 @@ class ProtGautomatch(ProtParticlePickingAuto):
                            "parameters by itself, however if you want to "
                            "modify them, select No")
         form.addParam('boxSize', params.IntParam, default=-1,
-                      label='Box size (pix)', condition='not advanced',
+                      label='Box size (pix)', condition='not advanced', allowsPointers=True,
                       help="Box size, in pixels; a suggested value will be "
                            "automatically calculated using pixel size and "
                            "particle size")
