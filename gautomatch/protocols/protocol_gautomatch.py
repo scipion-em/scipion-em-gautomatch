@@ -28,6 +28,7 @@ import os
 from glob import glob
 
 import pyworkflow.utils as pwutils
+from pyworkflow.constants import PROD
 import pyworkflow.protocol.params as params
 from pyworkflow.utils.properties import Message
 from pyworkflow.protocol import STEPS_PARALLEL
@@ -49,6 +50,7 @@ class ProtGautomatch(ProtParticlePickingAuto):
     templates.
     """
     _label = 'auto-picking'
+    _devStatus = PROD
 
     def __init__(self, **kwargs):
         ProtParticlePickingAuto.__init__(self, **kwargs)
@@ -123,7 +125,7 @@ class ProtGautomatch(ProtParticlePickingAuto):
                            "parameters by itself, however if you want to "
                            "modify them, select No")
         form.addParam('boxSize', params.IntParam, default=-1,
-                      label='Box size (pix)', condition='not advanced',
+                      label='Box size (pix)', condition='not advanced', allowsPointers=True,
                       help="Box size, in pixels; a suggested value will be "
                            "automatically calculated using pixel size and "
                            "particle size")
@@ -347,7 +349,7 @@ class ProtGautomatch(ProtParticlePickingAuto):
             badCoords = self.inputBadCoords.get()
 
             if self.exclusive and badCoords:
-                fnCoords = pwutils.join(micPath, '%s_rubbish.star'
+                fnCoords = os.path.join(micPath, '%s_rubbish.star'
                                         % pwutils.removeBaseExt(micFn))
                 writeMicCoords(mic, badCoords.iterCoordinates(mic), fnCoords)
 
@@ -584,7 +586,7 @@ class ProtGautomatch(ProtParticlePickingAuto):
         """
         template = pwutils.removeBaseExt(fn) + key + '.mrc'
 
-        return pwutils.join(self.getMicrographsDir(), template)
+        return os.path.join(self.getMicrographsDir(), template)
 
     def _getDefectsFn(self):
         """ Return the filename for the defects star file. """

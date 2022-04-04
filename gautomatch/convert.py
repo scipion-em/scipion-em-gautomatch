@@ -216,7 +216,7 @@ def writeSetOfCoordinatesXmipp(posDir, coordSet, ismanual=True, scale=1):
         if micIndex != NO_INDEX:
             micName = '%06d_at_%s' % (micIndex, micName)
 
-        posFn = pwutils.join(posDir, pwutils.replaceBaseExt(micName, "pos"))
+        posFn = os.path.join(posDir, pwutils.replaceBaseExt(micName, "pos"))
         posDict[mic.getObjId()] = posFn
 
     f = None
@@ -247,7 +247,7 @@ def writeSetOfCoordinatesXmipp(posDir, coordSet, ismanual=True, scale=1):
         f.close()
 
     # Write config.xmd metadata
-    configFn = pwutils.join(posDir, 'config.xmd')
+    configFn = os.path.join(posDir, 'config.xmd')
     writeCoordsConfig(configFn, int(boxSize), state)
 
     return posDict.values()

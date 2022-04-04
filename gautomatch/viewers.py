@@ -120,7 +120,7 @@ class GautomatchViewer(ProtocolViewer):
         if micSet is None:
             raise Exception('visualize: SetOfCoordinates has no micrographs set.')
 
-        micsFn = pwutils.join(tmpDir, micSet.getName() + '_micrographs.xmd')
+        micsFn = os.path.join(tmpDir, micSet.getName() + '_micrographs.xmd')
         from .convert import writeSetOfMicrographs
         from pwem.viewers.showj import launchSupervisedPickerGUI
         writeSetOfMicrographs(micSet, micsFn)
@@ -165,7 +165,7 @@ class GautomatchViewer(ProtocolViewer):
         coordTypes = {'autopick': 'coordinates.sqlite',
                       'rejected': 'coordinates_rejected.sqlite'}
         coordsFnIn = self.protocol._getPath(coordTypes[coordsType])
-        coordsFnOut = pwutils.join(tmpDir, 'coordinates.sqlite')
+        coordsFnOut = os.path.join(tmpDir, 'coordinates.sqlite')
         pwutils.createLink(coordsFnIn, coordsFnOut)
         coordSet = SetOfCoordinates(filename=coordsFnOut)
         coordSet.setMicrographs(micSet)
