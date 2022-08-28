@@ -112,6 +112,7 @@ class ProtGautomatch(ProtParticlePickingAuto):
                            'picked')
         form.addParam('particleSize', params.IntParam, default=-1,
                       label='Particle radius (A)',
+                      allowsPointers=True,
                       help="Particle radius in Angstrom. Default -1 means "
                            "it will be equal to 75% of references size if they "
                            "were provided, otherwise 250 A.")
@@ -132,6 +133,7 @@ class ProtGautomatch(ProtParticlePickingAuto):
         form.addParam('minDist', params.IntParam, default=300,
                       label='Min inter-particle distance (A)',
                       condition='not advanced',
+                      allowsPointers=True,
                       help='Minimum distance between particles in Angstrom\n '
                            'Use value of 0.9~1.1X diameter; '
                            'can be 0.3~0.5X for filament-like particle')
@@ -164,6 +166,7 @@ class ProtGautomatch(ProtParticlePickingAuto):
                             'carbon/ice edges or sharp metal particles.')
         group.addParam('localSigmaDiam', params.IntParam, default=100,
                        label='Local sigma diameter (A)',
+                       allowsPointers=True,
                        help='Diameter for estimation of local sigma, '
                             'in Angstrom.\n'
                             'Usually this diameter could be 0.5-2x of your '
@@ -195,6 +198,7 @@ class ProtGautomatch(ProtParticlePickingAuto):
                       label='Max')
         group.addParam('localAvgDiam', params.IntParam, default=100,
                        label='Local average diameter (A)',
+                       allowsPointers=True,
                        help='Diameter for estimation of local average, in '
                             'Angstrom. 1.5~2.0X particle diameter suggested.\n'
                             'However, if you have sharp/small ice or any '

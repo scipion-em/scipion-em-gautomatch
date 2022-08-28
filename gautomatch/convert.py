@@ -28,6 +28,8 @@
 
 import os
 from collections import OrderedDict
+import logging
+logger = logging.getLogger(__name__)
 
 import pwem.emlib.metadata as md
 from pwem.constants import NO_INDEX
@@ -261,7 +263,7 @@ def writeCoordsConfig(configFn, boxSize, state):
         state: picker state
     """
     # Write config.xmd metadata
-    print("writeCoordsConfig: state=", state)
+    logger.debug(f"writeCoordsConfig: state={state}")
     mdata = md.MetaData()
     # Write properties block
     objId = mdata.addObject()
