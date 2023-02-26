@@ -42,7 +42,7 @@ class Plugin(pwem.Plugin):
     _homeVar = GAUTOMATCH_HOME
     _pathVars = [GAUTOMATCH_HOME]
     _supportedVersions = ['0.53', '0.56']
-    _url = "https://www2.mrc-lmb.cam.ac.uk/download/gautomatch-056/"
+    _url = "https://github.com/scipion-em/scipion-em-gautomatch"
 
     @classmethod
     def _defineVariables(cls):
