@@ -33,7 +33,7 @@ from pwem.emlib.image import ImageHandler
 from .constants import *
 
 
-__version__ = '3.0.16'
+__version__ = '3.0.17'
 _logo = "gautomatch_logo.png"
 _references = ['Zhang']
 
