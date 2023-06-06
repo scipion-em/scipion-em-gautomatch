@@ -34,6 +34,7 @@ from pyworkflow.protocol.params import *
 from pyworkflow.viewer import ProtocolViewer, DESKTOP_TKINTER, WEB_DJANGO
 from pwem.viewers import ObjectView
 import pyworkflow.utils as pwutils
+import os
 
 from gautomatch.protocols import ProtGautomatch
 
