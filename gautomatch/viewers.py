@@ -25,12 +25,9 @@
 # *  e-mail address 'scipion@cnb.csic.es'
 # *
 # **************************************************************************
-"""
-This module implements the viewer for Gautomatch program
-"""
 
 from pwem.objects import SetOfCoordinates
-from pyworkflow.protocol.params import *
+from pyworkflow.protocol.params import LabelParam
 from pyworkflow.viewer import ProtocolViewer, DESKTOP_TKINTER, WEB_DJANGO
 from pwem.viewers import ObjectView
 import pyworkflow.utils as pwutils
@@ -119,7 +116,7 @@ class GautomatchViewer(ProtocolViewer):
         # protocol to continue picking later without losing the coordinates.
 
         if micSet is None:
-            raise Exception('visualize: SetOfCoordinates has no micrographs set.')
+            raise ValueError('visualize: SetOfCoordinates has no micrographs set.')
 
         micsFn = os.path.join(tmpDir, micSet.getName() + '_micrographs.xmd')
         from .convert import writeSetOfMicrographs
