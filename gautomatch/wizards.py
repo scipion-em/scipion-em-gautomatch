@@ -30,7 +30,7 @@ import pwem.wizards as emwiz
 import pyworkflow.utils as pwutils
 import pyworkflow.gui.dialog as dialog
 from pwem.viewers import CoordinatesObjectView
-from pwem.constants import *
+from pwem.constants import UNIT_ANGSTROM, FILTER_NO_DECAY
 from pwem.convert import getSubsetByDefocus
 
 from gautomatch.protocols import ProtGautomatch

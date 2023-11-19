@@ -276,11 +276,7 @@ class ProtGautomatch(ProtParticlePickingAuto):
                       label='Detector defects coordinates',
                       help='Occasionally you might have detector defects, e.g. '
                            'a black/white stripe. This will help to get rid of '
-                           'these bad areas. The boxes in this case should be '
-                           'overlapping and organized in a stripe/line like '
-                           'this: http://www.mrc-lmb.cam.ac.uk/kzhang/'
-                           'Gautomatch/Gautomatch_v0.53/examples/exclusive_'
-                           'picking/global_excluded.png')
+                           'these bad areas.')
 
         form.addSection(label='Debug')
         form.addParam('writeCC', params.BooleanParam, default=False,

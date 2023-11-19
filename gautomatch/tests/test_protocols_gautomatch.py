@@ -30,7 +30,7 @@ from pwem.protocols import (ProtImportAverages, ProtImportMicrographs,
 from pyworkflow.utils import magentaStr
 from pyworkflow.tests import BaseTest, DataSet, setupTestProject
 
-from ..protocols import *
+from ..protocols import ProtGautomatch
 
 
 class TestGautomatchBase(BaseTest):

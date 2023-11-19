@@ -223,7 +223,6 @@ def writeSetOfCoordinatesXmipp(posDir, coordSet, ismanual=True, scale=1):
 
     f = None
     lastMicId = None
-    c = 0
 
     for coord in coordSet.iterItems(orderBy='_micId'):
         micId = coord.getMicId()
@@ -232,10 +231,8 @@ def writeSetOfCoordinatesXmipp(posDir, coordSet, ismanual=True, scale=1):
             # we need to close previous opened file
             if f:
                 f.close()
-                c = 0
             f = openMd(posDict[micId], state)
             lastMicId = micId
-        c += 1
         if scale != 1:
             x = coord.getX() * scale
             y = coord.getY() * scale
