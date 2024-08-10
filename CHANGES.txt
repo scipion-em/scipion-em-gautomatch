@@ -1,3 +1,4 @@
+3.0.19 - remove broken web link and update github workflow
 3.0.18 - maintenance release
 3.0.17 - fix missing import
 3.0.16 - add possible outputs, use logging, allow pointers

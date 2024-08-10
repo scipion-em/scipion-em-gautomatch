@@ -2,7 +2,7 @@
 Gautomatch plugin
 =================
 
-This plugin provides a wrapper for `Gautomatch picker <https://www2.mrc-lmb.cam.ac.uk/research/locally-developed-software/zhang-software/>`_.
+This plugin provides a wrapper for Gautomatch picker developed by Kai Zhang at MRC LMB.
 
 .. image:: https://img.shields.io/pypi/v/scipion-em-gautomatch.svg
         :target: https://pypi.python.org/pypi/scipion-em-gautomatch
