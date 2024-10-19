@@ -51,10 +51,8 @@ class ProtGautomatch(ProtParticlePickingAuto):
     """
     _label = 'auto-picking'
     _devStatus = PROD
+    stepsExecutionMode = STEPS_PARALLEL
 
-    def __init__(self, **kwargs):
-        ProtParticlePickingAuto.__init__(self, **kwargs)
-        self.stepsExecutionMode = STEPS_PARALLEL
 
     # --------------------------- DEFINE param functions ----------------------
     def _defineParams(self, form):
@@ -311,7 +309,7 @@ class ProtGautomatch(ProtParticlePickingAuto):
 
     # --------------------------- INSERT steps functions ----------------------
     def _insertInitialSteps(self):
-        convId = self._insertFunctionStep('convertInputStep')
+        convId = self._insertFunctionStep(self.convertInputStep, needsGPU=False)
         return [convId]
 
     # --------------------------- STEPS functions -----------------------------
@@ -380,7 +378,7 @@ class ProtGautomatch(ProtParticlePickingAuto):
 
     def createOutputStep(self):
         pass
-        
+
     # --------------------------- INFO functions ------------------------------
     def _validate(self):
         errors = []
@@ -437,47 +435,47 @@ class ProtGautomatch(ProtParticlePickingAuto):
     def readCoordsFromMics(self, workingDir, micList, coordSet):
         if coordSet.getBoxSize() is None:
             coordSet.setBoxSize(self._getBoxSize())
-        
+
         readSetOfCoordinates(self.getMicrographsDir(), micList, coordSet)
         self.readRejectedCoordsFromMics(micList)
 
     def readRejectedCoordsFromMics(self, micList):
         micSet = self.getInputMicrographs()
-        
+
         rejectedCoordSqlite = self._getPath('coordinates_rejected.sqlite')
-        
+
         if not os.path.exists(rejectedCoordSqlite):
             coordSetAux = self._createSetOfCoordinates(micSet,
                                                        suffix='_rejected')
         else:
             coordSetAux = SetOfCoordinates(filename=rejectedCoordSqlite)
             coordSetAux.enableAppend()
-           
+
         coordSetAux.setBoxSize(self._getBoxSize())
         readSetOfCoordinates(self.getMicrographsDir(), micList,
                              coordSetAux, suffix='_rejected.star')
         coordSetAux.write()
         coordSetAux.close()
-    
+
         # debug output
         if self.writeCC:
             self.createDebugOutput(suffix='_ccmax')
-    
+
         if self.writeFilt:
             self.createDebugOutput(suffix='_pref')
-    
+
         if self.writeBg:
             self.createDebugOutput(suffix='_bg')
-    
+
         if self.writeBgSub:
             self.createDebugOutput(suffix='_bgfree')
-    
+
         if self.writeSigma:
             self.createDebugOutput(suffix='_lsigma')
-    
+
         if self.writeMsk:
             self.createDebugOutput(suffix='_mask')
-    
+
     def createDebugOutput(self, suffix):
         micSet = self.getInputMicrographs()
         pixSize = micSet.getSamplingRate()
