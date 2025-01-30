@@ -55,7 +55,9 @@ class Plugin(pwem.Plugin):
         cls._defineEmVar(GAUTOMATCH, f'Gautomatch_v{V0_56}_sm30-75_cu10.1',
                          description='Gautomatch binary filename',
                          var_type=VarTypes.STRING)
-        cls._defineEmVar()
+        cls._defineEmVar(GAUTOMATCH_ENV_ACTIVATION, DEFAULT_ACTIVATION_CMD,
+                         description='Gautomatch env activation command',
+                         var_type=VarTypes.STRING)
         #cls._defineEmVar(GAUTOMATCH_HOME, 'gautomatch-0.56')
         #cls._defineVar(GAUTOMATCH, 'Gautomatch_v0.56_sm30-75_cu10.1')
         #cls._defineVar(GAUTOMATCH_CUDA_LIB, pwem.Config.CUDA_LIB)
