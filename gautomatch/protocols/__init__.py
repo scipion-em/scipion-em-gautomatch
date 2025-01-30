@@ -1,8 +1,10 @@
 # **************************************************************************
 # *
 # * Authors:     Grigory Sharov (gsharov@mrc-lmb.cam.ac.uk)
+# *              Mikel Iceta (miceta@cnb.csic.es)
 # *
 # * MRC Laboratory of Molecular Biology (MRC-LMB)
+# * National Center for Biotechnology (CNB-CSIC)
 # *
 # * This program is free software; you can redistribute it and/or modify
 # * it under the terms of the GNU General Public License as published by
@@ -24,4 +26,4 @@
 # *
 # **************************************************************************
 
-from .protocol_gautomatch import ProtGautomatch
+from gautomatch.protocols.protocol_gautomatch import ProtGautomatch

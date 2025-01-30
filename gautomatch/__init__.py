@@ -1,8 +1,10 @@
 # **************************************************************************
 # *
 # * Authors:     Grigory Sharov (gsharov@mrc-lmb.cam.ac.uk)
+# *              Mikel Iceta (miceta@cnb.csic.es)
 # *
 # * MRC Laboratory of Molecular Biology (MRC-LMB)
+# * National Center for Biotechnology (CNB-CSIC)
 # *
 # * This program is free software; you can redistribute it and/or modify
 # * it under the terms of the GNU General Public License as published by
@@ -28,12 +30,13 @@ import os
 
 import pwem
 import pyworkflow.utils as pwutils
-from pwem.emlib.image import ImageHandler
+from pyworkflow.utils import VarTypes
+# from pwem.emlib.image import ImageHandler
 
-from .constants import *
+from gautomatch.constants import *
 
 
-__version__ = '3.0.19'
+__version__ = '3.1'
 _logo = "gautomatch_logo.png"
 _references = ['Zhang']
 
@@ -41,73 +44,101 @@ _references = ['Zhang']
 class Plugin(pwem.Plugin):
     _homeVar = GAUTOMATCH_HOME
     _pathVars = [GAUTOMATCH_HOME]
-    _supportedVersions = ['0.53', '0.56']
+    _supportedVersions = ['0.56']
     _url = "https://github.com/scipion-em/scipion-em-gautomatch"
 
     @classmethod
     def _defineVariables(cls):
-        cls._defineEmVar(GAUTOMATCH_HOME, 'gautomatch-0.56')
-        cls._defineVar(GAUTOMATCH, 'Gautomatch_v0.56_sm30-75_cu10.1')
-        cls._defineVar(GAUTOMATCH_CUDA_LIB, pwem.Config.CUDA_LIB)
-
-    @classmethod
-    def defineBinaries(cls, env):
-        env.addPackage('gautomatch', version='0.53',
-                       tar='Gautomatch_v0.53.tgz')
-
-        env.addPackage('gautomatch', version='0.56',
-                       tar='gautomatch_v0.56.tgz',
-                       default=True)
+        cls._defineEmVar(GAUTOMATCH_HOME, f'gautomatch-v{V0_56}',
+                         description='Path to Gautomatch installation folder',
+                         var_type=VarTypes.STRING)
+        cls._defineEmVar(GAUTOMATCH, f'Gautomatch_v{V0_56}_sm30-75_cu10.1',
+                         description='Gautomatch binary filename',
+                         var_type=VarTypes.STRING)
+        cls._defineEmVar()
+        #cls._defineEmVar(GAUTOMATCH_HOME, 'gautomatch-0.56')
+        #cls._defineVar(GAUTOMATCH, 'Gautomatch_v0.56_sm30-75_cu10.1')
+        #cls._defineVar(GAUTOMATCH_CUDA_LIB, pwem.Config.CUDA_LIB)
 
     @classmethod
     def getEnviron(cls):
         """ Return the environ settings to run Gautomatch programs. """
         environ = pwutils.Environ(os.environ)
+        environ.update({'PATH': Plugin.getHome('bin')},
+                       position=pwutils.Environ.BEGIN)
         # Get Gautomatch CUDA library path if defined
-        cudaLib = cls.getVar(GAUTOMATCH_CUDA_LIB, pwem.Config.CUDA_LIB)
-        environ.addLibrary(cudaLib)
-
+        #cudaLib = cls.getVar(GAUTOMATCH_CUDA_LIB, pwem.Config.CUDA_LIB)
+        #environ.addLibrary(cudaLib)
         return environ
+    
+    @classmethod
+    def getGautomatchEnvActivation(cls):
+        return cls.getVar(GAUTOMATCH_ENV_ACTIVATION)
+    
+    @classmethod
+    def getDependencies(cls):
+        condaActivationCmd = cls.getCondaActivationCmd()
+        neededProgs = []
+        if not condaActivationCmd:
+            neededProgs.append('conda')
+        
+        return neededProgs
+    
+    @classmethod
+    def defineBinaries(cls, env):
+        from scipion.install.funcs import CondaCommandDef
+        installCmd = CondaCommandDef("gautomatch", cls.getCondaActivationCmd())
+        installCmd.create(extraCmds="-y cudatoolkit=10.1")
+
+        env.addPackage('gautomatch', version=V0_56,
+                       tar=f'gautomatch_v{V0_56}.tgz',
+                       commands=installCmd.getCommands(),
+                       neededProgs=cls.getDependencies(),
+                       default=True)
 
     @classmethod
     def getProgram(cls):
         """ Return the program binary that will be used. """
-        return os.path.join(cls.getHome('bin'),
-                            os.path.basename(cls.getVar(GAUTOMATCH)))
+        return " ".join([
+            cls.getCondaActivationCmd(),
+            cls.getGautomatchEnvActivation(),
+            "&& LD_LIBRARY_PATH=$CONDA_PREFIX/lib &&",
+            os.path.basename(cls.getVar(GAUTOMATCH))
+        ])
 
-    @classmethod
-    def runGautomatch(cls, micNameList, refStack, workDir, extraArgs, env=None,
-                      runJob=None):
-        """ Run Gautomatch with the given parameters.
-        If micrographs are not .mrc, they will be converted.
-        If runJob=None, it will use pwutils.runJob.
-        """
-        args = ''
+    # @classmethod
+    # def runGautomatch(cls, micNameList, refStack, workDir, extraArgs, env=None,
+    #                   runJob=None):
+    #     """ Run Gautomatch with the given parameters.
+    #     If micrographs are not .mrc, they will be converted.
+    #     If runJob=None, it will use pwutils.runJob.
+    #     """
+    #     args = ''
 
-        ih = ImageHandler()
+    #     ih = ImageHandler()
 
-        for micName in micNameList:
-            # We convert the input micrograph on demand if not in .mrc
-            outMic = os.path.join(workDir, pwutils.replaceBaseExt(micName, 'mrc'))
-            if micName.endswith('.mrc'):
-                pwutils.createAbsLink(os.path.abspath(micName), outMic)
-            else:
-                ih.convert(micName, outMic)
+    #     for micName in micNameList:
+    #         # We convert the input micrograph on demand if not in .mrc
+    #         outMic = os.path.join(workDir, pwutils.replaceBaseExt(micName, 'mrc'))
+    #         if micName.endswith('.mrc'):
+    #             pwutils.createAbsLink(os.path.abspath(micName), outMic)
+    #         else:
+    #             ih.convert(micName, outMic)
 
-        args += ' %s/*.mrc' % workDir
+    #     args += ' %s/*.mrc' % workDir
 
-        if refStack is not None:
-            args += ' -T %s' % refStack
+    #     if refStack is not None:
+    #         args += ' -T %s' % refStack
 
-        args += ' %s' % extraArgs
+    #     args += ' %s' % extraArgs
 
-        environ = env if env is not None else cls.getEnviron()
-        if runJob is None:
-            pwutils.runJob(None, cls.getProgram(), args, env=environ)
-        else:
-            runJob(cls.getProgram(), args, env=environ)
+    #     environ = env if env is not None else cls.getEnviron()
+    #     if runJob is None:
+    #         pwutils.runJob(None, cls.getProgram(), args, env=environ)
+    #     else:
+    #         runJob(cls.getProgram(), args, env=environ)
 
-        for micName in micNameList:
-            outMic = os.path.join(workDir, pwutils.replaceBaseExt(micName, 'mrc'))
-            # After picking we can remove the temporary file.
-            pwutils.cleanPath(outMic)
+    #     for micName in micNameList:
+    #         outMic = os.path.join(workDir, pwutils.replaceBaseExt(micName, 'mrc'))
+    #         # After picking we can remove the temporary file.
+    #         pwutils.cleanPath(outMic)

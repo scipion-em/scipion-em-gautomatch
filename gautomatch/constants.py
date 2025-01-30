@@ -1,8 +1,10 @@
 # **************************************************************************
 # *
 # * Authors:     Grigory Sharov (gsharov@mrc-lmb.cam.ac.uk)
+# *              Mikel Iceta (miceta@cnb.csic.es)
 # *
 # * MRC Laboratory of Molecular Biology (MRC-LMB)
+# * National Center for Biotechnology (CNB-CSIC)
 # *
 # * This program is free software; you can redistribute it and/or modify
 # * it under the terms of the GNU General Public License as published by
@@ -26,7 +28,9 @@
 
 GAUTOMATCH = 'GAUTOMATCH'
 GAUTOMATCH_HOME = 'GAUTOMATCH_HOME'
-GAUTOMATCH_CUDA_LIB = 'GAUTOMATCH_CUDA_LIB'
+GAUTOMATCH_ENV_ACTIVATION = 'GAUTOMATCH_ENV_ACTIVATION'
+DEFAULT_ACTIVATION_CMD = 'conda activate gautomatch'
+V0_56 = "0.56"
 
 # Option for input micrographs for wizard
 MICS_ALL = 0
