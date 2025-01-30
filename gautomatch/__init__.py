@@ -57,10 +57,7 @@ class Plugin(pwem.Plugin):
                          description='Gautomatch binary filename',
                          var_type=VarTypes.STRING)
         
-        # cls._defineEmVar(GAUTOMATCH_ENV_ACTIVATION, DEFAULT_ACTIVATION_CMD,
-        #                  description='Gautomatch environment activation command',
-        #                  var_type=VarTypes.STRING)
-        cls._defineVar(GAUTOMATCH_ENV_ACTIVATION, f'conda activate gautomatch',
+        cls._defineVar(GAUTOMATCH_ENV_ACTIVATION, DEFAULT_ACTIVATION_CMD,
                          description='Gautomatch environment activation command',
                          var_type=VarTypes.STRING)
 
