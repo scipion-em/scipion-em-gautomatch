@@ -30,7 +30,7 @@ import os
 
 import pwem
 import pyworkflow.utils as pwutils
-from pyworkflow.utils import VarTypes
+from pyworkflow.config import VarTypes
 # from pwem.emlib.image import ImageHandler
 
 from gautomatch.constants import *
