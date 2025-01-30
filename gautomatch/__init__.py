@@ -49,7 +49,7 @@ class Plugin(pwem.Plugin):
 
     @classmethod
     def _defineVariables(cls):
-        cls._defineEmVar(GAUTOMATCH_HOME, f'gautomatch-v{V0_56}',
+        cls._defineEmVar(GAUTOMATCH_HOME, f'gautomatch-{V0_56}',
                          description='Path to Gautomatch installation folder',
                          var_type=VarTypes.STRING)
         cls._defineEmVar(GAUTOMATCH, f'Gautomatch_v{V0_56}_sm30-75_cu10.1',
