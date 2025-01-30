@@ -60,9 +60,9 @@ class Plugin(pwem.Plugin):
         # cls._defineEmVar(GAUTOMATCH_ENV_ACTIVATION, DEFAULT_ACTIVATION_CMD,
         #                  description='Gautomatch environment activation command',
         #                  var_type=VarTypes.STRING)
-        # cls._defineEmVar(GAUTOMATCH_ENV_ACTIVATION, f'conda activate gautomatch',
-        #                  description='Gautomatch environment activation command',
-        #                  var_type=VarTypes.STRING)
+        cls._defineEmVar(GAUTOMATCH_ENV_ACTIVATION, f'conda activate gautomatch',
+                         description='Gautomatch environment activation command',
+                         var_type=VarTypes.STRING)
 
     @classmethod
     def getEnviron(cls):
