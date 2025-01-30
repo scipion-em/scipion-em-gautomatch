@@ -44,7 +44,7 @@ _references = ['Zhang']
 class Plugin(pwem.Plugin):
     _homeVar = GAUTOMATCH_HOME
     _pathVars = [GAUTOMATCH_HOME]
-    _supportedVersions = ['0.56']
+    _supportedVersions = [V0_56]
     _url = "https://github.com/scipion-em/scipion-em-gautomatch"
 
     @classmethod
@@ -58,9 +58,6 @@ class Plugin(pwem.Plugin):
         cls._defineEmVar(GAUTOMATCH_ENV_ACTIVATION, DEFAULT_ACTIVATION_CMD,
                          description='Gautomatch env activation command',
                          var_type=VarTypes.STRING)
-        #cls._defineEmVar(GAUTOMATCH_HOME, 'gautomatch-0.56')
-        #cls._defineVar(GAUTOMATCH, 'Gautomatch_v0.56_sm30-75_cu10.1')
-        #cls._defineVar(GAUTOMATCH_CUDA_LIB, pwem.Config.CUDA_LIB)
 
     @classmethod
     def getEnviron(cls):
@@ -68,9 +65,7 @@ class Plugin(pwem.Plugin):
         environ = pwutils.Environ(os.environ)
         environ.update({'PATH': Plugin.getHome('bin')},
                        position=pwutils.Environ.BEGIN)
-        # Get Gautomatch CUDA library path if defined
-        #cudaLib = cls.getVar(GAUTOMATCH_CUDA_LIB, pwem.Config.CUDA_LIB)
-        #environ.addLibrary(cudaLib)
+        
         return environ
     
     @classmethod
