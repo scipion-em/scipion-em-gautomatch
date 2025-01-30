@@ -108,39 +108,39 @@ class Plugin(pwem.Plugin):
             os.path.basename(cls.getVar(GAUTOMATCH))
         ])
 
-    # @classmethod
-    # def runGautomatch(cls, micNameList, refStack, workDir, extraArgs, env=None,
-    #                   runJob=None):
-    #     """ Run Gautomatch with the given parameters.
-    #     If micrographs are not .mrc, they will be converted.
-    #     If runJob=None, it will use pwutils.runJob.
-    #     """
-    #     args = ''
+    @classmethod
+    def runGautomatch(cls, micNameList, refStack, workDir, extraArgs, env=None,
+                      runJob=None):
+        """ Run Gautomatch with the given parameters.
+        If micrographs are not .mrc, they will be converted.
+        If runJob=None, it will use pwutils.runJob.
+        """
+        args = ''
 
-    #     ih = ImageHandler()
+        ih = ImageHandler()
 
-    #     for micName in micNameList:
-    #         # We convert the input micrograph on demand if not in .mrc
-    #         outMic = os.path.join(workDir, pwutils.replaceBaseExt(micName, 'mrc'))
-    #         if micName.endswith('.mrc'):
-    #             pwutils.createAbsLink(os.path.abspath(micName), outMic)
-    #         else:
-    #             ih.convert(micName, outMic)
+        for micName in micNameList:
+            # We convert the input micrograph on demand if not in .mrc
+            outMic = os.path.join(workDir, pwutils.replaceBaseExt(micName, 'mrc'))
+            if micName.endswith('.mrc'):
+                pwutils.createAbsLink(os.path.abspath(micName), outMic)
+            else:
+                ih.convert(micName, outMic)
 
-    #     args += ' %s/*.mrc' % workDir
+        args += ' %s/*.mrc' % workDir
 
-    #     if refStack is not None:
-    #         args += ' -T %s' % refStack
+        if refStack is not None:
+            args += ' -T %s' % refStack
 
-    #     args += ' %s' % extraArgs
+        args += ' %s' % extraArgs
 
-    #     environ = env if env is not None else cls.getEnviron()
-    #     if runJob is None:
-    #         pwutils.runJob(None, cls.getProgram(), args, env=environ)
-    #     else:
-    #         runJob(cls.getProgram(), args, env=environ)
+        environ = env if env is not None else cls.getEnviron()
+        if runJob is None:
+            pwutils.runJob(None, cls.getProgram(), args, env=environ)
+        else:
+            runJob(cls.getProgram(), args, env=environ)
 
-    #     for micName in micNameList:
-    #         outMic = os.path.join(workDir, pwutils.replaceBaseExt(micName, 'mrc'))
-    #         # After picking we can remove the temporary file.
-    #         pwutils.cleanPath(outMic)
+        for micName in micNameList:
+            outMic = os.path.join(workDir, pwutils.replaceBaseExt(micName, 'mrc'))
+            # After picking we can remove the temporary file.
+            pwutils.cleanPath(outMic)
