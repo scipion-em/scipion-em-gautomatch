@@ -1,8 +1,10 @@
 # **************************************************************************
 # *
 # * Authors:     Grigory Sharov (gsharov@mrc-lmb.cam.ac.uk)
+# *              Mikel Iceta (miceta@cnb.csic.es)
 # *
 # * MRC Laboratory of Molecular Biology (MRC-LMB)
+# * National Center for Biotechnology (CNB-CSIC)
 # *
 # * This program is free software; you can redistribute it and/or modify
 # * it under the terms of the GNU General Public License as published by
@@ -28,12 +30,13 @@ import os
 
 import pwem
 import pyworkflow.utils as pwutils
+from pyworkflow.config import VarTypes
 from pwem.emlib.image import ImageHandler
 
-from .constants import *
+from gautomatch.constants import *
 
 
-__version__ = '3.0.19'
+__version__ = '3.1'
 _logo = "gautomatch_logo.png"
 _references = ['Zhang']
 
@@ -41,39 +44,66 @@ _references = ['Zhang']
 class Plugin(pwem.Plugin):
     _homeVar = GAUTOMATCH_HOME
     _pathVars = [GAUTOMATCH_HOME]
-    _supportedVersions = ['0.53', '0.56']
+    _supportedVersions = [V0_56]
     _url = "https://github.com/scipion-em/scipion-em-gautomatch"
 
     @classmethod
     def _defineVariables(cls):
-        cls._defineEmVar(GAUTOMATCH_HOME, 'gautomatch-0.56')
-        cls._defineVar(GAUTOMATCH, 'Gautomatch_v0.56_sm30-75_cu10.1')
-        cls._defineVar(GAUTOMATCH_CUDA_LIB, pwem.Config.CUDA_LIB)
-
-    @classmethod
-    def defineBinaries(cls, env):
-        env.addPackage('gautomatch', version='0.53',
-                       tar='Gautomatch_v0.53.tgz')
-
-        env.addPackage('gautomatch', version='0.56',
-                       tar='gautomatch_v0.56.tgz',
-                       default=True)
+        cls._defineEmVar(GAUTOMATCH_HOME, f'gautomatch-{V0_56}',
+                         description='Path to Gautomatch installation folder',
+                         var_type=VarTypes.STRING)
+        
+        cls._defineVar(GAUTOMATCH, f'Gautomatch_v{V0_56}_sm30-75_cu10.1',
+                         description='Gautomatch binary filename',
+                         var_type=VarTypes.STRING)
+        
+        cls._defineVar(GAUTOMATCH_ENV_ACTIVATION, DEFAULT_ACTIVATION_CMD,
+                         description='Gautomatch environment activation command',
+                         var_type=VarTypes.STRING)
 
     @classmethod
     def getEnviron(cls):
         """ Return the environ settings to run Gautomatch programs. """
         environ = pwutils.Environ(os.environ)
-        # Get Gautomatch CUDA library path if defined
-        cudaLib = cls.getVar(GAUTOMATCH_CUDA_LIB, pwem.Config.CUDA_LIB)
-        environ.addLibrary(cudaLib)
-
+        environ.update({'PATH': Plugin.getHome('bin')},
+                       position=pwutils.Environ.BEGIN)
+        
         return environ
+    
+    @classmethod
+    def getGautomatchEnvActivation(cls):
+        return cls.getVar(GAUTOMATCH_ENV_ACTIVATION)
+    
+    @classmethod
+    def getDependencies(cls):
+        condaActivationCmd = cls.getCondaActivationCmd()
+        neededProgs = []
+        if not condaActivationCmd:
+            neededProgs.append('conda')
+        
+        return neededProgs
+    
+    @classmethod
+    def defineBinaries(cls, env):
+        from scipion.install.funcs import CondaCommandDef
+        installCmd = CondaCommandDef("gautomatch", cls.getCondaActivationCmd())
+        installCmd.create(extraCmds=" cudatoolkit=10.1")
+
+        env.addPackage('gautomatch', version=V0_56,
+                       tar=f'gautomatch_v{V0_56}.tgz',
+                       commands=installCmd.getCommands(),
+                       neededProgs=cls.getDependencies(),
+                       default=True)
 
     @classmethod
     def getProgram(cls):
         """ Return the program binary that will be used. """
-        return os.path.join(cls.getHome('bin'),
-                            os.path.basename(cls.getVar(GAUTOMATCH)))
+        return " ".join([
+            cls.getCondaActivationCmd(),
+            cls.getGautomatchEnvActivation(),
+            "&& LD_LIBRARY_PATH=$CONDA_PREFIX/lib:$LD_LIBRARY_PATH &&",
+            cls.getVar(GAUTOMATCH)
+        ])
 
     @classmethod
     def runGautomatch(cls, micNameList, refStack, workDir, extraArgs, env=None,

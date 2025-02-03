@@ -1,3 +1,5 @@
+3.1 - Add conda environment with cuda 10.1 libs
+    - Remove support for v0.53
 3.0.19 - remove broken web link and update github workflow
 3.0.18 - maintenance release
 3.0.17 - fix missing import
