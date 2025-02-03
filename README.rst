@@ -50,7 +50,16 @@ b) Developer's version
       scipion installp -p /path/to/scipion-em-gautomatch --devel
 
 Gautomatch binaries will be installed automatically with the plugin, but you can also link an existing installation. 
-Default installation path assumed is ``software/em/gautomatch-0.56``, if you want to change it, set *GAUTOMATCH_HOME* in ``scipion.conf`` file to the folder where the Gautomatch is installed. Depending on your CUDA version and GPU card compute capability you might want to change the default binary from ``Gautomatch_v0.56_sm30-75_cu10.1`` to a different one by explicitly setting *GAUTOMATCH* variable. If you need to use CUDA different from the one used during Scipion installation (defined by CUDA_LIB), you can add *GAUTOMATCH_CUDA_LIB* variable to the config file. Various binaries can be downloaded from the official Gautomatch website. 
+
+Configuration variables
+------------
+CONDA_ACTIVATION_CMD: If undefined, it will rely on conda being in the PATH. An example of a conda activation cmd can be _eval "$(/extra/miniconda3/bin/conda shell.bash hook)"_.
+GAUTOMATCH_ENV_ACTIVATION: Command to activate the Gautomatch environment. This environment must have CUDA installed (cudatoolkit=10.1).
+GAUTOMATCH_HOME: Path to gautomatch binary containing folder (default = software/em/gautomatch-0.56)
+GAUTOMATCH_BIN: Specific binary to use (default = Gautomatch_v0.56_sm30-75_cu10.1)
+
+Verifying
+------------
 
 To check the installation, simply run the following Scipion test:
 
@@ -59,7 +68,7 @@ To check the installation, simply run the following Scipion test:
 Supported versions
 ------------------
 
-0.53 and 0.56
+0.56
 
 Protocols
 ---------
