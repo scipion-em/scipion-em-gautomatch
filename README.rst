@@ -52,7 +52,7 @@ b) Developer's version
 Gautomatch binaries will be installed automatically with the plugin, but you can also link an existing installation. 
 
 Configuration variables
-------------
+-----------------------
 CONDA_ACTIVATION_CMD: If undefined, it will rely on conda being in the PATH. An example of a conda activation cmd can be _eval "$(/extra/miniconda3/bin/conda shell.bash hook)"_.
 GAUTOMATCH_ENV_ACTIVATION: Command to activate the Gautomatch environment. This environment must have CUDA installed (cudatoolkit=10.1).
 GAUTOMATCH_HOME: Path to gautomatch binary containing folder (default = software/em/gautomatch-0.56)
