@@ -87,7 +87,7 @@ class Plugin(pwem.Plugin):
     def defineBinaries(cls, env):
         from scipion.install.funcs import CondaCommandDef
         installCmd = CondaCommandDef("gautomatch", cls.getCondaActivationCmd())
-        installCmd.create(extraCmds="-y cudatoolkit=10.1")
+        installCmd.create(extraCmds=" cudatoolkit=10.1")
 
         env.addPackage('gautomatch', version=V0_56,
                        tar=f'gautomatch_v{V0_56}.tgz',
@@ -101,8 +101,8 @@ class Plugin(pwem.Plugin):
         return " ".join([
             cls.getCondaActivationCmd(),
             cls.getGautomatchEnvActivation(),
-            "&& LD_LIBRARY_PATH=$CONDA_PREFIX/lib &&",
-            os.path.basename(cls.getVar(GAUTOMATCH))
+            "&& LD_LIBRARY_PATH=$CONDA_PREFIX/lib:$LD_LIBRARY_PATH &&",
+            cls.getVar(GAUTOMATCH)
         ])
 
     @classmethod
