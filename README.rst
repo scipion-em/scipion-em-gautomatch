@@ -58,7 +58,7 @@ Configuration variables
 - GAUTOMATCH_BIN: Specific binary to use (default = Gautomatch_v0.56_sm30-75_cu10.1)
 
 Verifying
-------------
+---------
 
 To check the installation, simply run the following Scipion test:
 
