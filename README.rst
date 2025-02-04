@@ -1,5 +1,5 @@
 Gautomatch plugin
-=================
+=====================
 
 This plugin provides a wrapper for Gautomatch picker developed by Kai Zhang at MRC LMB.
 
