@@ -36,7 +36,7 @@ from pwem.emlib.image import ImageHandler
 from gautomatch.constants import *
 
 
-__version__ = '3.1'
+__version__ = '3.2'
 _logo = "gautomatch_logo.png"
 _references = ['Zhang']
 
