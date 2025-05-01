@@ -309,7 +309,7 @@ class ProtGautomatch(ProtParticlePickingAuto):
 
     # --------------------------- INSERT steps functions ----------------------
     def _insertInitialSteps(self):
-        convId = self._insertFunctionStep(self.convertInputStep, needsGPU=False)
+        convId = self._insertFunctionStep(self.convertInputStep, needsGPU=True)
         return [convId]
 
     # --------------------------- STEPS functions -----------------------------
