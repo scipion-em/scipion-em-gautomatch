@@ -35,6 +35,8 @@ from pwem.emlib.image import ImageHandler
 
 from gautomatch.constants import *
 
+from pyworkflow import SPA
+
 
 __version__ = '3.2.1'
 _logo = "gautomatch_logo.png"
@@ -46,6 +48,7 @@ class Plugin(pwem.Plugin):
     _pathVars = [GAUTOMATCH_HOME]
     _supportedVersions = [V0_56]
     _url = "https://github.com/scipion-em/scipion-em-gautomatch"
+    _processingField = [SPA]
 
     @classmethod
     def _defineVariables(cls):
