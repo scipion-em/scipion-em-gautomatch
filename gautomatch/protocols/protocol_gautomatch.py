@@ -49,6 +49,89 @@ class ProtGautomatch(ProtParticlePickingAuto):
     fully automatic particle picking from cryo-EM micrographs with or without
     templates.
     """
+    """
+        Gautomatch (ProtGautomatch) — User Manual
+
+        Overview
+
+        ProtGautomatch is an automated particle-picking protocol designed for
+        single-particle cryo-EM workflows using the GPU-accelerated Gautomatch
+        software. Its main purpose is to automatically identify particles in
+        cryo-EM micrographs using either user-provided templates or internally
+        generated references. The protocol is optimized for high-throughput
+        processing and parallel execution, making it suitable for large datasets
+        and production-level Scipion workflows.
+
+        Inputs and General Workflow
+
+        The protocol takes cryo-EM micrographs as the primary input and optionally
+        accepts 2D class averages or reference projections as picking templates.
+        When templates are not provided, references can be automatically generated,
+        which is especially useful for spherical particles such as viruses or
+        ribosomes.
+
+        Users can configure particle size, angular sampling, threshold values,
+        GPU selection, and optimization strategies. The protocol also allows
+        selecting either all micrographs or a representative subset based on
+        CTF estimation and defocus variation for parameter optimization.
+
+        Particle Detection and Filtering
+
+        From a biological perspective, accurate particle picking is essential for
+        obtaining reliable downstream reconstructions. The protocol includes
+        several filtering and optimization mechanisms to improve robustness under
+        difficult cryo-EM conditions.
+
+        Local sigma and local average filters help remove contamination,
+        aggregation, carbon edges, and ice artifacts. Band-pass filtering can
+        also be applied to improve particle contrast and reduce low-frequency
+        background noise. These options are particularly useful for datasets
+        with heterogeneous ice thickness or poor micrograph quality.
+
+        Exclusive Picking
+
+        The protocol supports an exclusive picking mode that allows users to
+        exclude previously identified bad particles or detector defects. This is
+        especially useful during iterative workflows, where false positives,
+        dominant orientations, or unwanted regions should not be repicked.
+
+        Coordinates from rejected particles or detector defects can be imported
+        and used to prevent particle detection in problematic areas.
+
+        Execution Workflow
+
+        The workflow begins by converting references and preparing micrographs
+        into the required formats. Particle picking is then performed through
+        GPU-accelerated Gautomatch execution, either individually or in grouped
+        batches for improved efficiency.
+
+        The protocol automatically manages temporary directories, intermediate
+        files, and output organization. Optional debug outputs such as
+        cross-correlation maps, filtered micrographs, estimated backgrounds,
+        local sigma maps, and detected masks can also be generated for detailed
+        inspection and troubleshooting.
+
+        Outputs and Validation
+
+        After execution, the protocol generates coordinate sets associated with
+        the original micrographs. Summary information includes the number of
+        processed micrographs, detected particles, particle box size, and the
+        applied picking threshold.
+
+        Validation routines verify parameter consistency, ensure proper exclusive
+        picking configuration, and confirm compatibility between GPU allocation
+        and processor usage.
+
+        Final Perspective
+
+        ProtGautomatch provides a fast, flexible, and biologically meaningful
+        solution for automated particle picking in cryo-EM workflows. Proper
+        adjustment of particle size, filtering parameters, and exclusion
+        strategies can significantly improve particle quality and downstream
+        reconstruction accuracy, particularly in challenging datasets containing
+        contamination, preferred orientations, or heterogeneous particle
+        populations.
+        """
     _label = 'auto-picking'
     _devStatus = PROD
     stepsExecutionMode = STEPS_PARALLEL
