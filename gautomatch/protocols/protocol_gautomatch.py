@@ -375,6 +375,15 @@ class ProtGautomatch(ProtParticlePickingAuto):
         except Exception as e:
             self.error("ERROR: Gautomatch has failed for %s. %s" % (
                 micFnList, e))
+            self._writeFailedList(micList)
+
+    def _getAllFailed(self):
+        return self._getExtraPath('FAILED_all.TXT')
+
+    def _writeFailedList(self, micList):
+        with open(self._getAllFailed(), 'a') as f:
+            for mic in micList:
+                f.write('%d\n' % mic.getObjId())
 
     def createOutputStep(self):
         pass
