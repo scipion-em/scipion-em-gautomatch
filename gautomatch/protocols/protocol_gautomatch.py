@@ -319,6 +319,9 @@ class ProtGautomatch(ProtParticlePickingAuto):
             converted otherwise.
         References: will always be converted to '.mrcs' format
         """
+        if not self.isContinued():
+            pwutils.cleanPath(self._getAllFailed())
+
         # put output and mics in extra dir
         pwutils.makePath(self.getMicrographsDir())
         # We will always convert the templates to mrcs stack
@@ -375,9 +378,37 @@ class ProtGautomatch(ProtParticlePickingAuto):
         except Exception as e:
             self.error("ERROR: Gautomatch has failed for %s. %s" % (
                 micFnList, e))
+            self._writeFailedList(micList)
+
+    def _getAllFailed(self):
+        return self._getExtraPath('FAILED_all.TXT')
+
+    def _writeFailedList(self, micList):
+        with open(self._getAllFailed(), 'a') as f:
+            for mic in micList:
+                f.write('%d\n' % mic.getObjId())
 
     def createOutputStep(self):
-        pass
+        failedFn = self._getAllFailed()
+        if not os.path.exists(failedFn):
+            return
+
+        with open(failedFn) as failedFile:
+            failedIds = {
+                int(line.strip())
+                for line in failedFile
+                if line.strip()
+            }
+
+        inputMics = self.getInputMicrographs()
+        if inputMics is None:
+            return
+
+        inputIds = {mic.getObjId() for mic in inputMics}
+        if inputIds and inputIds.issubset(failedIds):
+            raise RuntimeError(
+                'Gautomatch failed for all input micrographs.'
+            )
 
     # --------------------------- INFO functions ------------------------------
     def _validate(self):
@@ -440,22 +471,8 @@ class ProtGautomatch(ProtParticlePickingAuto):
         self.readRejectedCoordsFromMics(micList)
 
     def readRejectedCoordsFromMics(self, micList):
-        micSet = self.getInputMicrographs()
-
-        rejectedCoordSqlite = self._getPath('coordinates_rejected.sqlite')
-
-        if not os.path.exists(rejectedCoordSqlite):
-            coordSetAux = self._createSetOfCoordinates(micSet,
-                                                       suffix='_rejected')
-        else:
-            coordSetAux = SetOfCoordinates(filename=rejectedCoordSqlite)
-            coordSetAux.enableAppend()
-
-        coordSetAux.setBoxSize(self._getBoxSize())
-        readSetOfCoordinates(self.getMicrographsDir(), micList,
-                             coordSetAux, suffix='_rejected.star')
-        coordSetAux.write()
-        coordSetAux.close()
+        # Rejected coordinates are not exposed or consumed by the protocol.
+        # Avoid creating an auxiliary Set just to persist unused legacy data.
 
         # debug output
         if self.writeCC:
