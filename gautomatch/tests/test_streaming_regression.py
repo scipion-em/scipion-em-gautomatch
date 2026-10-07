@@ -33,6 +33,12 @@ class _Mic:
 
 
 class _PickingHarness:
+    # Gautomatch is handed links named after these, so the harness uses
+    # the real naming rather than a guess at it.
+    _itemScopedName = ProtGautomatch._itemScopedName
+    _getScopedMicName = ProtGautomatch._getScopedMicName
+    _getRubbishCoordsFn = ProtGautomatch._getRubbishCoordsFn
+
     def __init__(self, tmp_dir):
         self.tmp_dir = tmp_dir
         self.inputBadCoords = _Value(None)
@@ -189,6 +195,266 @@ class TestGautomatchStreamingRegression(unittest.TestCase):
                 "Restart must not inherit failures from a previous execution.",
             )
 
+
+SAME_BASENAME_A = '/data/sessionA/mic001.mrc'
+SAME_BASENAME_B = '/data/sessionB/mic001.mrc'
+
+
+class _NamedMic:
+    def __init__(self, objId, fileName):
+        self._objId = objId
+        self._fileName = fileName
+
+    def getObjId(self):
+        return self._objId
+
+    def getFileName(self):
+        return self._fileName
+
+    def setFileName(self, fileName):
+        self._fileName = fileName
+
+
+class _NamingHarness(ProtGautomatch):
+    def __init__(self, micsDir):
+        self._micsDir = micsDir
+
+    def getMicrographsDir(self):
+        return self._micsDir
+
+    def _getExtraPath(self, *parts):
+        return os.path.join(self._micsDir, *parts)
+
+
+class TestGautomatchArtefactNamesDoNotCollide(unittest.TestCase):
+    """Gautomatch names its output after each input file, and those
+    outputs are collected into one flat directory for the whole run.
+
+    A Set can hold /data/sessionA/mic001.mrc and /data/sessionB/mic001.mrc
+    at once: different micrographs, one basename. Keyed on that alone the
+    second one's coordinates overwrite the first's, and both micrographs
+    read the survivor's particles back.
+    """
+
+    def setUp(self):
+        self.micsDir = tempfile.mkdtemp()
+        self.harness = _NamingHarness(self.micsDir)
+
+    def test_TheInputNameHandedToGautomatchIsDistinct(self):
+        first = self.harness._getScopedMicName(_NamedMic(1, SAME_BASENAME_A))
+        second = self.harness._getScopedMicName(_NamedMic(2, SAME_BASENAME_B))
+
+        self.assertNotEqual(
+            first,
+            second,
+            "Gautomatch is handed two inputs with the same name, so it "
+            "writes one set of coordinates for both.",
+        )
+
+    def test_TheOriginalBasenameStaysInTheName(self):
+        """Keep it recognisable in gautomatch's own logs and output."""
+        self.assertIn(
+            'mic001',
+            self.harness._getScopedMicName(_NamedMic(1, SAME_BASENAME_A)),
+        )
+
+    def test_TheRubbishCoordinatesFileIsDistinct(self):
+        first = self.harness._getRubbishCoordsFn(
+            self.micsDir, _NamedMic(1, SAME_BASENAME_A))
+        second = self.harness._getRubbishCoordsFn(
+            self.micsDir, _NamedMic(2, SAME_BASENAME_B))
+
+        self.assertNotEqual(
+            first,
+            second,
+            "The bad coordinates excluded from one micrograph would be "
+            "applied to the other.",
+        )
+
+    def test_TheDebugOutputNameIsDistinct(self):
+        first = self.harness.getOutputName(_NamedMic(1, SAME_BASENAME_A),
+                                           '_ccmax')
+        second = self.harness.getOutputName(_NamedMic(2, SAME_BASENAME_B),
+                                            '_ccmax')
+
+        self.assertNotEqual(first, second)
+        self.assertTrue(first.endswith('.mrc'))
+
+    def test_TheNameIsStableForTheSameMicrograph(self):
+        """Resume re-derives these and has to land on the same files."""
+        mic = _NamedMic(7, SAME_BASENAME_A)
+
+        self.assertEqual(
+            self.harness._getScopedMicName(mic),
+            self.harness._getScopedMicName(_NamedMic(7, SAME_BASENAME_A)),
+        )
+
+
+class _RealMicHarness(ProtGautomatch):
+    """Drives the real batch preparation against a temporary workspace."""
+
+    _itemScopedName = ProtGautomatch._itemScopedName
+
+    def __init__(self, root):
+        self._root = root
+        self.inputBadCoords = _Value(None)
+        self.exclusive = False
+        self.handedToGautomatch = None
+        self.errors = []
+
+    def _getMicrographDir(self, mic):
+        return os.path.join(self._root, 'work')
+
+    def getMicrographsDir(self):
+        return os.path.join(self._root, 'extra')
+
+    def _getReferencesFn(self):
+        return None
+
+    def runJob(self, *args, **kwargs):
+        pass
+
+    def error(self, message):
+        self.errors.append(message)
+
+    def _writeFailedList(self, micList):
+        pass
+
+
+class TestGautomatchIsHandedUnambiguousInputs(unittest.TestCase):
+    """It is the batch preparation, not the naming helper, that decides
+    what gautomatch actually sees."""
+
+    def setUp(self):
+        self.root = tempfile.mkdtemp()
+        os.makedirs(os.path.join(self.root, 'extra'))
+
+    def _realMic(self, objId, name):
+        session = os.path.join(self.root, 'session%d' % objId)
+        os.makedirs(session, exist_ok=True)
+        path = os.path.join(session, name)
+        with open(path, 'w') as handle:
+            handle.write('micrograph')
+        return _NamedMic(objId, path)
+
+    def test_BothMicrographsReachGautomatch(self):
+        mics = [self._realMic(1, 'mic001.mrc'), self._realMic(2, 'mic001.mrc')]
+        harness = _RealMicHarness(self.root)
+        seen = {}
+
+        def _runGautomatch(micFnList, *args, **kwargs):
+            seen['files'] = list(micFnList)
+
+        with patch('gautomatch.Plugin.runGautomatch', _runGautomatch):
+            with patch('gautomatch.Plugin.getEnviron', lambda: {}):
+                ProtGautomatch._pickMicrographList(harness, mics)
+
+        self.assertEqual(
+            len(set(os.path.basename(f) for f in seen['files'])),
+            2,
+            "Gautomatch was handed two inputs under one name, so it "
+            "writes a single set of coordinates for both micrographs.",
+        )
+
+
+class _CoordsReadHarness(ProtGautomatch):
+    _itemScopedName = ProtGautomatch._itemScopedName
+
+    def __init__(self, micsDir):
+        self._micsDir = micsDir
+
+    def getMicrographsDir(self):
+        return self._micsDir
+
+
+class TestGautomatchReadsBackWhatItWrote(unittest.TestCase):
+    """The name coordinates are read back under has to match the name
+    gautomatch wrote them under - including for a run picked before
+    those names carried the micrograph id."""
+
+    def setUp(self):
+        self.micsDir = tempfile.mkdtemp()
+        self.harness = _CoordsReadHarness(self.micsDir)
+
+    def _write(self, name):
+        with open(os.path.join(self.micsDir, name + '_automatch.star'),
+                  'w') as handle:
+            handle.write('')
+
+    def test_TheScopedNameIsUsedWhenThisRunWroteIt(self):
+        mic = _NamedMic(1, SAME_BASENAME_A)
+        scoped = os.path.splitext(self.harness._getScopedMicName(mic))[0]
+        self._write(scoped)
+
+        self.assertEqual(self.harness._getCoordsBaseName(mic), scoped)
+
+    def test_AnOlderRunsCoordinatesAreStillFound(self):
+        mic = _NamedMic(1, SAME_BASENAME_A)
+        self._write('mic001')
+
+        self.assertEqual(
+            self.harness._getCoordsBaseName(mic),
+            'mic001',
+            "Coordinates an earlier run already picked must still be the "
+            "ones this run reads.",
+        )
+
+    def test_TheReaderIsGivenThatName(self):
+        """readCoordsFromMics is the call site that has to pass it."""
+        mic = _NamedMic(1, SAME_BASENAME_A)
+        self._write('mic001')
+        seen = {}
+
+        def _read(workDir, micSet, coordSet, suffix=None, nameFunc=None):
+            seen['nameFunc'] = nameFunc
+
+        class _Coords:
+            def getBoxSize(self):
+                return 1
+
+        with patch('gautomatch.protocols.protocol_gautomatch'
+                   '.readSetOfCoordinates', _read):
+            with patch.object(_CoordsReadHarness,
+                              'readRejectedCoordsFromMics',
+                              lambda self, micList: None):
+                ProtGautomatch.readCoordsFromMics(
+                    self.harness, self.micsDir, [mic], _Coords())
+
+        self.assertIsNotNone(
+            seen['nameFunc'],
+            "Without a namer the reader falls back to the basename and "
+            "reads the wrong micrograph's coordinates.",
+        )
+        self.assertEqual(seen['nameFunc'](mic), 'mic001')
+
+
+class TestGautomatchConvertDefaultIsUnchanged(unittest.TestCase):
+    """The conversion helper is shared; its default must keep naming
+    exactly as it always did."""
+
+    def test_TheDefaultNamerIsThePlainBasename(self):
+        from gautomatch import convert
+
+        micsDir = tempfile.mkdtemp()
+        mic = _NamedMic(1, SAME_BASENAME_A)
+        with open(os.path.join(micsDir, 'mic001_automatch.star'),
+                  'w') as handle:
+            handle.write('')
+
+        read = []
+
+        def _readCoordinates(mic, fileName, coordsSet):
+            read.append(fileName)
+
+        with patch.object(convert, 'readCoordinates', _readCoordinates):
+            convert.readSetOfCoordinates(micsDir, [mic], None)
+
+        self.assertEqual(
+            [os.path.join(micsDir, 'mic001_automatch.star')],
+            read,
+            "Without an explicit namer the helper must keep reading the "
+            "plain basename.",
+        )
 
 
 if __name__ == "__main__":

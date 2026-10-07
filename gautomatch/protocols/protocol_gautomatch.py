@@ -451,15 +451,20 @@ class ProtGautomatch(GautomatchStreamingBase, ProtParticlePickingAuto):
         micFnList = []
 
         for mic in micList:
-            micFn = mic.getFileName()
+            # Gautomatch names everything it writes after the input it
+            # was given, so hand it a link whose name carries the
+            # micrograph's id: two micrographs whose files share a
+            # basename would otherwise produce one set of coordinates
+            # between them.
+            micFn = os.path.join(micPath, self._getScopedMicName(mic))
+            pwutils.createAbsLink(os.path.abspath(mic.getFileName()), micFn)
             micFnList.append(micFn)
             # The coordinates conversion is done for each micrograph
             # and not in convertInputStep, this is needed for streaming
             badCoords = self.inputBadCoords.get()
 
             if self.exclusive and badCoords:
-                fnCoords = os.path.join(micPath, '%s_rubbish.star'
-                                        % pwutils.removeBaseExt(micFn))
+                fnCoords = self._getRubbishCoordsFn(micPath, mic)
                 writeMicCoords(mic, badCoords.iterCoordinates(mic), fnCoords)
 
         try:
@@ -575,7 +580,8 @@ class ProtGautomatch(GautomatchStreamingBase, ProtParticlePickingAuto):
         if coordSet.getBoxSize() is None:
             coordSet.setBoxSize(self._getBoxSize())
 
-        readSetOfCoordinates(self.getMicrographsDir(), micList, coordSet)
+        readSetOfCoordinates(self.getMicrographsDir(), micList, coordSet,
+                             nameFunc=self._getCoordsBaseName)
         self.readRejectedCoordsFromMics(micList)
 
     def readRejectedCoordsFromMics(self, micList):
@@ -608,7 +614,7 @@ class ProtGautomatch(GautomatchStreamingBase, ProtParticlePickingAuto):
         # debug output images are downsampled by a factor of 4
         outputDebugMics.setSamplingRate(float(pixSize * 4))
         for mic in micSet:
-            micFn = self.getOutputName(mic.getFileName(), suffix)
+            micFn = self.getOutputName(mic, suffix)
             mic.setFileName(micFn)
             outputDebugMics.append(mic)
         outputDebugMics.write()
@@ -703,13 +709,62 @@ class ProtGautomatch(GautomatchStreamingBase, ProtParticlePickingAuto):
         if refStack:  # refStack should be None when not using references
             self.inputReferences.get().writeStack(refStack)
 
-    def getOutputName(self, fn, key):
+    def _getScopedMicName(self, mic, ext=None):
+        """The name this micrograph is known by inside this run.
+
+        Gautomatch names every file it writes after the input it was
+        given, and those files are then collected into one flat
+        directory for the whole run. Two micrographs whose files share a
+        basename would write - and read back - the same coordinates, so
+        the name they are handed under carries their id.
+        """
+        baseName = os.path.basename(mic.getFileName())
+
+        if ext is not None:
+            baseName = pwutils.replaceBaseExt(baseName, ext)
+
+        return self._itemScopedName(mic, baseName)
+
+    def _getRubbishCoordsFn(self, micPath, mic):
+        """Where the bad coordinates of one micrograph are written."""
+        return os.path.join(
+            micPath, '%s_rubbish.star'
+            % pwutils.removeBaseExt(self._getScopedMicName(mic)))
+
+    def getOutputName(self, mic, key):
         """ Give a key, append the mrc extension
         and prefix the protocol working dir.
-        """
-        template = pwutils.removeBaseExt(fn) + key + '.mrc'
 
-        return os.path.join(self.getMicrographsDir(), template)
+        Scoped by the micrograph's id, with the unscoped name still
+        honoured when that is what an earlier run left on disk.
+        """
+        baseName = pwutils.removeBaseExt(mic.getFileName()) + key + '.mrc'
+
+        return self._itemScopedPath(
+            mic, baseName,
+            pathFunc=lambda name: os.path.join(self.getMicrographsDir(),
+                                               name))
+
+    def _getCoordsBaseName(self, mic):
+        """Base name gautomatch wrote this micrograph's results under.
+
+        A run picked before the names were scoped left the unscoped one
+        on disk, and those are the user's coordinates, so Continue has to
+        keep finding them.
+        """
+        legacy = pwutils.removeBaseExt(mic.getFileName())
+        scoped = pwutils.removeBaseExt(self._getScopedMicName(mic))
+        scopedFn = os.path.join(self.getMicrographsDir(),
+                                scoped + '_automatch.star')
+
+        if not os.path.exists(scopedFn):
+            legacyFn = os.path.join(self.getMicrographsDir(),
+                                    legacy + '_automatch.star')
+
+            if os.path.exists(legacyFn):
+                return legacy
+
+        return scoped
 
     def _getDefectsFn(self):
         """ Return the filename for the defects star file. """

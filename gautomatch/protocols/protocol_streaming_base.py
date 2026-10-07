@@ -16,6 +16,7 @@
 # **************************************************************************
 
 import json
+import os
 
 
 class _StepArgScan:
@@ -46,6 +47,37 @@ class GautomatchStreamingBase:
     items, and a full rescan on every poll would make it slower the longer
     it runs.
     """
+
+    # ------------------------ per-item artefacts -----------------------
+
+    def _itemScopedName(self, item, baseName):
+        """A per-item artefact name two items can never share.
+
+        A Set can hold two micrographs whose files differ only in their
+        directory. Named after the basename alone they collide, and the
+        second one's results silently replace the first's. The id keeps
+        them apart; the original basename stays in the name so logs and
+        the picker's own output remain readable.
+        """
+        return '%06d__%s' % (item.getObjId(), baseName)
+
+    def _itemScopedPath(self, item, baseName, pathFunc=None):
+        """Path for a per-item artefact, scoped by the item's own id.
+
+        Projects written before this was scoped hold the unscoped name,
+        and those files are the user's results: when only the old one is
+        on disk it is still the one returned, so Continue keeps working.
+        """
+        pathFunc = pathFunc or self._getExtraPath
+        scoped = pathFunc(self._itemScopedName(item, baseName))
+
+        if not os.path.exists(scoped):
+            legacy = pathFunc(baseName)
+
+            if os.path.exists(legacy):
+                return legacy
+
+        return scoped
 
     # ------------------------- input discovery -------------------------
     def _discoverIdsAfter(self, inputSet, lastId):
