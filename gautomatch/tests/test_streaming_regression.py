@@ -32,7 +32,20 @@ class _Mic:
         return self._file_name
 
 
-class _PickingHarness:
+class _InMemoryFailedList:
+    """The failed-micrograph list, kept in memory instead of in extra/."""
+
+    def _failedPickingMicIds(self):
+        return set(self.__dict__.setdefault('failedIds', set()))
+
+    def _recordFailedPicking(self, micIds):
+        self.__dict__.setdefault('failedIds', set()).update(micIds)
+
+    def _forgetFailedPicking(self, micIds):
+        self.__dict__.setdefault('failedIds', set()).difference_update(micIds)
+
+
+class _PickingHarness(_InMemoryFailedList):
     # Gautomatch is handed links named after these, so the harness uses
     # the real naming rather than a guess at it.
     _itemScopedName = ProtGautomatch._itemScopedName
@@ -61,41 +74,24 @@ class _PickingHarness:
     def error(self, message):
         self.errors.append(message)
 
-    def _writeFailedList(self, mic_list):
-        self.failed_ids.extend(mic.getObjId() for mic in mic_list)
+    def _recordFailedPicking(self, micIds):
+        self.failed_ids.extend(micIds)
 
 
 class TestGautomatchStreamingRegression(unittest.TestCase):
     def testProtocolFailsWhenAllInputMicrographsFailed(self):
-        class _InputMics:
-            def __init__(self, ids):
-                self._mics = [_Mic(obj_id, 'mic_%03d.mrc' % obj_id)
-                              for obj_id in ids]
+        class _OutputHarness(_InMemoryFailedList):
+            pass
 
-            def __iter__(self):
-                return iter(self._mics)
+        protocol = _OutputHarness()
+        protocol._handledPickingMicIds = {1, 2}
+        protocol._recordFailedPicking([1, 2])
 
-        class _OutputHarness:
-            def __init__(self, tmp_dir):
-                self.tmp_dir = tmp_dir
-                self.input_mics = _InputMics([1, 2])
+        with self.assertRaisesRegex(Exception, 'failed for every one'):
+            ProtGautomatch._failIfEveryMicrographFailed(protocol)
 
-            def _getAllFailed(self):
-                return os.path.join(self.tmp_dir, 'FAILED_all.TXT')
-
-            def getInputMicrographs(self):
-                return self.input_mics
-
-        with tempfile.TemporaryDirectory() as tmp:
-            protocol = _OutputHarness(tmp)
-            with open(protocol._getAllFailed(), 'w') as handle:
-                handle.write('1\n2\n')
-
-            with self.assertRaisesRegex(
-                RuntimeError,
-                'Gautomatch failed for all input micrographs',
-            ):
-                ProtGautomatch.createOutputStep(protocol)
+        protocol._forgetFailedPicking([2])
+        ProtGautomatch._failIfEveryMicrographFailed(protocol)
 
     def testPickingFailureIsRecordedBeforeContinuing(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -290,7 +286,7 @@ class TestGautomatchArtefactNamesDoNotCollide(unittest.TestCase):
         )
 
 
-class _RealMicHarness(ProtGautomatch):
+class _RealMicHarness(_InMemoryFailedList, ProtGautomatch):
     """Drives the real batch preparation against a temporary workspace."""
 
     _itemScopedName = ProtGautomatch._itemScopedName
@@ -357,7 +353,7 @@ class TestGautomatchIsHandedUnambiguousInputs(unittest.TestCase):
         )
 
 
-class _CoordsReadHarness(ProtGautomatch):
+class _CoordsReadHarness(_InMemoryFailedList, ProtGautomatch):
     _itemScopedName = ProtGautomatch._itemScopedName
 
     def __init__(self, micsDir):
@@ -405,27 +401,27 @@ class TestGautomatchReadsBackWhatItWrote(unittest.TestCase):
         self._write('mic001')
         seen = {}
 
-        def _read(workDir, micSet, coordSet, suffix=None, nameFunc=None):
-            seen['nameFunc'] = nameFunc
+        def _read(mic, fileName, coordsSet):
+            seen['fileName'] = fileName
 
         class _Coords:
             def getBoxSize(self):
                 return 1
 
         with patch('gautomatch.protocols.protocol_gautomatch'
-                   '.readSetOfCoordinates', _read):
+                   '.readCoordinates', _read):
             with patch.object(_CoordsReadHarness,
                               'readRejectedCoordsFromMics',
                               lambda self, micList: None):
                 ProtGautomatch.readCoordsFromMics(
                     self.harness, self.micsDir, [mic], _Coords())
 
-        self.assertIsNotNone(
-            seen['nameFunc'],
-            "Without a namer the reader falls back to the basename and "
-            "reads the wrong micrograph's coordinates.",
+        self.assertEqual(
+            os.path.join(self.micsDir, 'mic001_automatch.star'),
+            seen['fileName'],
+            "The coordinates must be read under the name they were "
+            "written with.",
         )
-        self.assertEqual(seen['nameFunc'](mic), 'mic001')
 
 
 class TestGautomatchConvertDefaultIsUnchanged(unittest.TestCase):

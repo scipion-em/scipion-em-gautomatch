@@ -170,6 +170,9 @@ class _FinishedPickStep:
 
 
 class _OutputHarness(ProtGautomatch):
+    def _failedPickingMicIds(self):
+        return set()
+
     """Fails loudly if completion is read from or written to a DONE file."""
 
     def __init__(self, streamClosed=True, publishedMicIds=()):
@@ -373,7 +376,8 @@ class TestTerminalInconsistencyDoesNotHangForever(unittest.TestCase):
         harness.poll(inputSet)
 
         self.assertEqual(
-            harness._terminalStallCount,
+            harness.__dict__.get('_terminalStallCounts', {}).get(
+                '_lastInputId', 0),
             0,
             "The view did become consistent; nothing is stalled.",
         )
