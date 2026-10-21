@@ -25,6 +25,7 @@
 # **************************************************************************
 
 import os
+import threading
 from glob import glob
 
 import pyworkflow.utils as pwutils
@@ -32,17 +33,24 @@ from pyworkflow.constants import PROD
 import pyworkflow.protocol.params as params
 from pyworkflow.utils.properties import Message
 from pyworkflow.protocol import STEPS_PARALLEL
+from pyworkflow.protocol.constants import STATUS_NEW
+from pyworkflow.object import Set
 from pwem.constants import RELATION_CTF
-from pwem.objects import SetOfCoordinates
+from pwem.objects import SetOfCoordinates, Micrograph
 from pwem.protocols import ProtParticlePickingAuto
 
 import gautomatch
-from gautomatch.convert import (readSetOfCoordinates, writeDefectsFile,
+from gautomatch.convert import (readCoordinates, writeDefectsFile,
                                 writeMicCoords)
 from gautomatch.constants import MICS_ALL, MICS_SUBSET
+from gautomatch.protocols.protocol_streaming_base import GautomatchStreamingBase
+
+# Module level: these helpers are called unbound on light test harnesses.
+PICKING_STEP_NAMES = ('pickMicrographStep', 'pickMicrographListStep')
+_failedListLock = threading.Lock()
 
 
-class ProtGautomatch(ProtParticlePickingAuto):
+class ProtGautomatch(GautomatchStreamingBase, ProtParticlePickingAuto):
     """ Automated particle picker for SPA.
 
     Gautomatch is a GPU accelerated program for accurate, fast, flexible and
@@ -312,6 +320,247 @@ class ProtGautomatch(ProtParticlePickingAuto):
         convId = self._insertFunctionStep(self.convertInputStep, needsGPU=True)
         return [convId]
 
+    # ----------------------- streaming discovery -----------------------------
+    def _loadSet(self, inputSet, SetClass, getKeyFunc):
+        """Discover the micrographs added since the last poll.
+
+        pwem rebuilds the Set from a storage filename and walks it whole
+        on every poll. This asks the Set for the ids above the watermark
+        and loads only those, so a poll costs what just arrived.
+        """
+        knownIds = self._getKnownStreamIds('_lastMicId')
+        newItems, producerClosed, terminalConsistent = (
+            self._discoverNewInputItems(inputSet, '_lastMicId', knownIds))
+
+        newItemDict = {}
+
+        for item in newItems:
+            itemId = item.getObjId()
+
+            if itemId in knownIds:
+                continue
+
+            knownIds.add(itemId)
+            itemKey = getKeyFunc(item)
+
+            if itemKey not in self.micDict:
+                newItemDict[itemKey] = item
+
+        return newItemDict, producerClosed and terminalConsistent
+
+    def _checkNewInput(self):
+        """Discover new micrographs without consulting a filesystem mtime.
+
+        pwem gates this on the modification time of a file behind the
+        input Set, which says nothing about its logical contents.
+        """
+        micDict, self.streamClosed = self._loadInputList()
+
+        if not micDict and not self._hasBatchRemainder():
+            return
+
+        outputStep = self._getFirstJoinStep()
+        deps = self._insertNewMicsSteps(micDict.values())
+
+        if outputStep is not None:
+            outputStep.addPrerequisites(*deps)
+
+        self.updateSteps()
+
+    def _insertNewMicsSteps(self, inputMics):
+        return self._insertKeepingBatchRemainder(
+            inputMics,
+            lambda mics: ProtParticlePickingAuto._insertNewMicsSteps(self, mics))
+
+    def _hasActiveStreamingWork(self):
+        """Micrographs waiting for a batch, or picked and not published."""
+        return self._hasBatchRemainder() or not getattr(
+            self, '_allPicksPublished', False)
+
+    def _getFinishedPickingMicNames(self):
+        """Micrograph names carried by finished picking steps.
+
+        A micrograph that failed in an earlier run is picked again, and
+        only counts once its new step has finished: its old step finished
+        too, and read before the new one runs it would be taken as failed
+        once more and never published.
+        """
+        finished = self._collectStepArgKeys(PICKING_STEP_NAMES, keyType=str)
+
+        if getattr(self, '_failedBeforeThisRun', None) is None:
+            self._failedBeforeThisRun = self._failedPickingMicIds()
+
+        retried = {micName for micName, mic in self.micDict.items()
+                   if mic.getObjId() in self._failedBeforeThisRun}
+
+        if retried:
+            finishedNow = self._collectStepArgKeys(
+                PICKING_STEP_NAMES, keyType=str, includePrevious=False)
+            finished = {micName for micName in finished
+                        if micName not in retried or micName in finishedNow}
+
+        return finished
+
+    def _getPublishedPickingMicIds(self):
+        """Micrograph ids already represented in the output coordinates."""
+        micIds = self._getOutputUniqueValues(
+            getattr(self, 'outputCoordinates', None), '_micId')
+
+        return set() if micIds is None else micIds
+
+    def _checkNewOutput(self):
+        """Publish finished picking without DONE sidecars.
+
+        pwem decides this with extra/DONE/mic_*.TXT plus DONE/all.TXT.
+        The persisted step graph already records what finished and the
+        output Set what was published, so neither file is consulted.
+        """
+        if getattr(self, 'finished', False):
+            return
+
+        publishedMicIds = self._getPublishedPickingMicIds()
+        finishedMicNames = self._getFinishedPickingMicNames()
+        # Read in this run already: a micrograph without coordinates (no
+        # particles, or a failed picking) is never in the output, and would
+        # otherwise be read again every poll - and the run never end.
+        handledMicIds = self.__dict__.setdefault('_handledPickingMicIds',
+                                                 set())
+
+        listOfMics = list(self.micDict.values())
+        newDone = [mic for mic in listOfMics
+                   if mic.getMicName() in finishedMicNames
+                   and mic.getObjId() not in publishedMicIds
+                   and mic.getObjId() not in handledMicIds]
+
+        doneCount = len([mic for mic in listOfMics
+                         if mic.getObjId() in publishedMicIds
+                         or mic.getObjId() in handledMicIds])
+        allDone = doneCount + len(newDone)
+
+        self._allPicksPublished = allDone == len(listOfMics)
+        self.finished = (self.streamClosed and self._allPicksPublished
+                         and not self._hasBatchRemainder())
+        streamMode = (Set.STREAM_CLOSED
+                      if self.finished else Set.STREAM_OPEN)
+
+        if newDone:
+            self._updateOutputCoordSet(newDone, streamMode)
+            handledMicIds.update(mic.getObjId() for mic in newDone)
+        elif not self.finished:
+            self._streamingSleepOnWait()
+            return
+
+        if self.finished:
+            self._updateStreamState(streamMode)
+            self._failIfEveryMicrographFailed()
+
+            # The lifecycle here is still the classic one: createOutputStep
+            # was scheduled with wait=True and only runs once something
+            # releases it. Without this it stays WAITING for good and the
+            # protocol never finishes, however complete the output is.
+            outputStep = self._getFirstJoinStep()
+
+            if outputStep and outputStep.isWaiting():
+                outputStep.setStatus(STATUS_NEW)
+
+    def _failIfEveryMicrographFailed(self):
+        """A failed micrograph is left out; the run fails only when that
+        happened to every micrograph."""
+        handled = getattr(self, '_handledPickingMicIds', set())
+        output = getattr(self, 'outputCoordinates', None)
+
+        if (handled and handled <= self._failedPickingMicIds()
+                and (output is None or output.getSize() == 0)):
+            raise Exception("Gautomatch failed for every one of the %d "
+                            "micrographs; see the errors above. Continue "
+                            "picks them again." % len(handled))
+
+    # ------------------------- failed micrographs ------------------------
+    def _insertAllSteps(self):
+        self._prepareFailedForRetry()
+        ProtParticlePickingAuto._insertAllSteps(self)
+
+    def _prepareFailedForRetry(self):
+        """Have Continue pick again the micrographs that failed.
+
+        pwem skips a micrograph whose DONE marker exists, and pyworkflow
+        does not run a finished step again: both go for the failed ones.
+        """
+        failedIds = self._failedPickingMicIds()
+        self._failedBeforeThisRun = failedIds
+        self._forgetStepResults(failedIds)
+
+        for micId in failedIds:
+            mic = Micrograph()
+            mic.setObjId(micId)
+            pwutils.cleanPath(self._getMicDone(mic))
+
+    def _failedPickingMicIds(self):
+        """Ids of the micrographs whose picking failed, from extra/."""
+        cached = getattr(self, '_failedPickingMicIdsCache', None)
+
+        if cached is None:
+            cached = set()
+            path = self._getAllFailed()
+
+            if os.path.exists(path):
+                with open(path) as handle:
+                    cached = {int(line) for line in handle if line.strip()}
+
+            self._failedPickingMicIdsCache = cached
+
+        return set(cached)
+
+    def _writeFailedPicking(self, micIds):
+        with open(self._getAllFailed(), 'w') as handle:
+            handle.writelines('%d\n' % micId for micId in sorted(micIds))
+
+        self._failedPickingMicIdsCache = set(micIds)
+
+    def _recordFailedPicking(self, micIds):
+        with _failedListLock:
+            failed = self._failedPickingMicIds()
+
+            if not set(micIds) <= failed:
+                self._writeFailedPicking(failed | set(micIds))
+
+    def _forgetFailedPicking(self, micIds):
+        """Picked well now: no longer listed as failed."""
+        with _failedListLock:
+            failed = self._failedPickingMicIds()
+
+            if failed & set(micIds):
+                self._writeFailedPicking(failed - set(micIds))
+
+    def _forgetDoneMarkersOfFailed(self, micNames):
+        """pwem marks a micrograph DONE whatever its picking gave, and a
+        Continue skips the ones marked: a failed one must be picked again."""
+        failed = self._failedPickingMicIds()
+
+        for micName in micNames:
+            mic = self.micDict.get(micName)
+
+            if mic is not None and mic.getObjId() in failed:
+                pwutils.cleanPath(self._getMicDone(mic))
+
+    def pickMicrographStep(self, micName, *args):
+        ProtParticlePickingAuto.pickMicrographStep(self, micName, *args)
+        self._forgetDoneMarkersOfFailed([micName])
+
+        return self._pickingStepResults([micName])
+
+    def pickMicrographListStep(self, micNameList, *args):
+        ProtParticlePickingAuto.pickMicrographListStep(self, micNameList,
+                                                       *args)
+        self._forgetDoneMarkersOfFailed(micNameList)
+
+        return self._pickingStepResults(micNameList)
+
+    def _pickingStepResults(self, micNames):
+        return self._stepResultFiles(
+            [self.micDict[micName].getObjId() for micName in micNames
+             if micName in self.micDict])
+
     # --------------------------- STEPS functions -----------------------------
     def convertInputStep(self):
         """ This step will take of the conversions from the inputs.
@@ -319,6 +568,9 @@ class ProtGautomatch(ProtParticlePickingAuto):
             converted otherwise.
         References: will always be converted to '.mrcs' format
         """
+        if not self.isContinued():
+            pwutils.cleanPath(self._getAllFailed())
+
         # put output and mics in extra dir
         pwutils.makePath(self.getMicrographsDir())
         # We will always convert the templates to mrcs stack
@@ -340,15 +592,20 @@ class ProtGautomatch(ProtParticlePickingAuto):
         micFnList = []
 
         for mic in micList:
-            micFn = mic.getFileName()
+            # Gautomatch names everything it writes after the input it
+            # was given, so hand it a link whose name carries the
+            # micrograph's id: two micrographs whose files share a
+            # basename would otherwise produce one set of coordinates
+            # between them.
+            micFn = os.path.join(micPath, self._getScopedMicName(mic))
+            pwutils.createAbsLink(os.path.abspath(mic.getFileName()), micFn)
             micFnList.append(micFn)
             # The coordinates conversion is done for each micrograph
             # and not in convertInputStep, this is needed for streaming
             badCoords = self.inputBadCoords.get()
 
             if self.exclusive and badCoords:
-                fnCoords = os.path.join(micPath, '%s_rubbish.star'
-                                        % pwutils.removeBaseExt(micFn))
+                fnCoords = self._getRubbishCoordsFn(micPath, mic)
                 writeMicCoords(mic, badCoords.iterCoordinates(mic), fnCoords)
 
         try:
@@ -375,8 +632,33 @@ class ProtGautomatch(ProtParticlePickingAuto):
         except Exception as e:
             self.error("ERROR: Gautomatch has failed for %s. %s" % (
                 micFnList, e))
+            self._recordFailedPicking([mic.getObjId() for mic in micList])
+            return
+
+        # Each micrograph's own output says whether it was picked: a
+        # missing one is a failure, not a micrograph without particles.
+        pickedIds = []
+
+        for mic in micList:
+            if os.path.exists(self._getMicCoordsFile(mic)):
+                pickedIds.append(mic.getObjId())
+            else:
+                self.error("ERROR: Missing Gautomatch output for micrograph "
+                           "%s: %s" % (mic.getObjId(),
+                                       self._getMicCoordsFile(mic)))
+                self._recordFailedPicking([mic.getObjId()])
+
+        self._forgetFailedPicking(pickedIds)
+
+    def _getAllFailed(self):
+        return self._getExtraPath('FAILED_all.TXT')
+
+    def _writeFailedList(self, micList):
+        self._recordFailedPicking([mic.getObjId() for mic in micList])
 
     def createOutputStep(self):
+        # Whether every micrograph failed is decided as the output closes,
+        # see _failIfEveryMicrographFailed.
         pass
 
     # --------------------------- INFO functions ------------------------------
@@ -432,30 +714,44 @@ class ProtGautomatch(ProtParticlePickingAuto):
         return methodsMsgs
 
     # --------------------------- UTILS functions -----------------------------
+    def _getMicCoordsFile(self, mic):
+        return os.path.join(self.getMicrographsDir(),
+                            self._getCoordsBaseName(mic) + '_automatch.star')
+
     def readCoordsFromMics(self, workingDir, micList, coordSet):
         if coordSet.getBoxSize() is None:
             coordSet.setBoxSize(self._getBoxSize())
 
-        readSetOfCoordinates(self.getMicrographsDir(), micList, coordSet)
+        failedIds = self._failedPickingMicIds()
+
+        for mic in micList:
+            if mic.getObjId() in failedIds:
+                continue
+
+            # A micrograph is published whole or not at all: its rows are
+            # kept apart until its whole file has been read.
+            micCoords = _Collected()
+            coordsFile = self._getMicCoordsFile(mic)
+
+            try:
+                if not os.path.exists(coordsFile):
+                    raise FileNotFoundError(coordsFile)
+
+                readCoordinates(mic, coordsFile, micCoords)
+            except Exception as e:
+                self.error("ERROR: Could not read the coordinates of "
+                           "micrograph %s: %s" % (mic.getObjId(), e))
+                self._recordFailedPicking([mic.getObjId()])
+                continue
+
+            for coord in micCoords.items:
+                coordSet.append(coord)
+
         self.readRejectedCoordsFromMics(micList)
 
     def readRejectedCoordsFromMics(self, micList):
-        micSet = self.getInputMicrographs()
-
-        rejectedCoordSqlite = self._getPath('coordinates_rejected.sqlite')
-
-        if not os.path.exists(rejectedCoordSqlite):
-            coordSetAux = self._createSetOfCoordinates(micSet,
-                                                       suffix='_rejected')
-        else:
-            coordSetAux = SetOfCoordinates(filename=rejectedCoordSqlite)
-            coordSetAux.enableAppend()
-
-        coordSetAux.setBoxSize(self._getBoxSize())
-        readSetOfCoordinates(self.getMicrographsDir(), micList,
-                             coordSetAux, suffix='_rejected.star')
-        coordSetAux.write()
-        coordSetAux.close()
+        # Rejected coordinates are not exposed or consumed by the protocol.
+        # Avoid creating an auxiliary Set just to persist unused legacy data.
 
         # debug output
         if self.writeCC:
@@ -483,7 +779,7 @@ class ProtGautomatch(ProtParticlePickingAuto):
         # debug output images are downsampled by a factor of 4
         outputDebugMics.setSamplingRate(float(pixSize * 4))
         for mic in micSet:
-            micFn = self.getOutputName(mic.getFileName(), suffix)
+            micFn = self.getOutputName(mic, suffix)
             mic.setFileName(micFn)
             outputDebugMics.append(mic)
         outputDebugMics.write()
@@ -578,13 +874,62 @@ class ProtGautomatch(ProtParticlePickingAuto):
         if refStack:  # refStack should be None when not using references
             self.inputReferences.get().writeStack(refStack)
 
-    def getOutputName(self, fn, key):
+    def _getScopedMicName(self, mic, ext=None):
+        """The name this micrograph is known by inside this run.
+
+        Gautomatch names every file it writes after the input it was
+        given, and those files are then collected into one flat
+        directory for the whole run. Two micrographs whose files share a
+        basename would write - and read back - the same coordinates, so
+        the name they are handed under carries their id.
+        """
+        baseName = os.path.basename(mic.getFileName())
+
+        if ext is not None:
+            baseName = pwutils.replaceBaseExt(baseName, ext)
+
+        return self._itemScopedName(mic, baseName)
+
+    def _getRubbishCoordsFn(self, micPath, mic):
+        """Where the bad coordinates of one micrograph are written."""
+        return os.path.join(
+            micPath, '%s_rubbish.star'
+            % pwutils.removeBaseExt(self._getScopedMicName(mic)))
+
+    def getOutputName(self, mic, key):
         """ Give a key, append the mrc extension
         and prefix the protocol working dir.
-        """
-        template = pwutils.removeBaseExt(fn) + key + '.mrc'
 
-        return os.path.join(self.getMicrographsDir(), template)
+        Scoped by the micrograph's id, with the unscoped name still
+        honoured when that is what an earlier run left on disk.
+        """
+        baseName = pwutils.removeBaseExt(mic.getFileName()) + key + '.mrc'
+
+        return self._itemScopedPath(
+            mic, baseName,
+            pathFunc=lambda name: os.path.join(self.getMicrographsDir(),
+                                               name))
+
+    def _getCoordsBaseName(self, mic):
+        """Base name gautomatch wrote this micrograph's results under.
+
+        A run picked before the names were scoped left the unscoped one
+        on disk, and those are the user's coordinates, so Continue has to
+        keep finding them.
+        """
+        legacy = pwutils.removeBaseExt(mic.getFileName())
+        scoped = pwutils.removeBaseExt(self._getScopedMicName(mic))
+        scopedFn = os.path.join(self.getMicrographsDir(),
+                                scoped + '_automatch.star')
+
+        if not os.path.exists(scopedFn):
+            legacyFn = os.path.join(self.getMicrographsDir(),
+                                    legacy + '_automatch.star')
+
+            if os.path.exists(legacyFn):
+                return legacy
+
+        return scoped
 
     def _getDefectsFn(self):
         """ Return the filename for the defects star file. """
@@ -608,3 +953,13 @@ class ProtGautomatch(ProtParticlePickingAuto):
                 return int(0.75 * dim * pix)
             else:
                 return 250
+
+
+class _Collected:
+    """Holds what a reader appends, to be published only if it all reads."""
+
+    def __init__(self):
+        self.items = []
+
+    def append(self, item):
+        self.items.append(item)

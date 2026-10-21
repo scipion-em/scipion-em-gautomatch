@@ -109,7 +109,8 @@ def rowToCoordinate(coordRow):
     return coord
 
 
-def readSetOfCoordinates(workDir, micSet, coordSet, suffix=None):
+def readSetOfCoordinates(workDir, micSet, coordSet, suffix=None,
+                         nameFunc=None):
     """ Read from coordinates from Gautomatch .star files.
     For a micrograph: mic1.mrc, the expected coordinate file is:
     mic1_automatch.star
@@ -118,12 +119,18 @@ def readSetOfCoordinates(workDir, micSet, coordSet, suffix=None):
         micSet: the SetOfMicrographs.
         coordSet: the SetOfCoordinates that will be populated.
         suffix: input coord file suffix
+        nameFunc: how to derive each micrograph's base name; defaults to
+            its file's basename, which is what gautomatch wrote before
+            the names carried the micrograph id.
     """
     if suffix is None:
         suffix = '_automatch.star'
 
+    if nameFunc is None:
+        nameFunc = lambda mic: pwutils.removeBaseExt(mic.getFileName())
+
     for mic in micSet:
-        micBase = pwutils.removeBaseExt(mic.getFileName())
+        micBase = nameFunc(mic)
         fnCoords = os.path.join(workDir, micBase + suffix)
         readCoordinates(mic, fnCoords, coordSet)
 

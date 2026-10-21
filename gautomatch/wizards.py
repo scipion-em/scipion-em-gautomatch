@@ -180,7 +180,7 @@ class GautomatchPickerWizard(emwiz.EmWizard):
             "pickCmd": pickCmd,
             "convertCmd": "emconvert",
             'coordsDir': coordsDir,
-            'micsSqlite': micSet.getFileName(),
+            'micsSetFn': micSet.getFileName(),
             'threshold': prot.threshold.get(),
             "mindist": prot.minDist.get(),
             "refStack": refStack
@@ -196,7 +196,7 @@ class GautomatchPickerWizard(emwiz.EmWizard):
                 threshold.label = Threshold
                 threshold.help = Particles with CCC above the threshold will be picked
                 autopickCommand = %(pickScript)s %%(micrograph) %(refStack)s %(coordsDir)s %(pickCmd)s --cc_cutoff %%(threshold)
-                convertCommand = %(convertCmd)s --coordinates --from gautomatch --to xmipp --input  %(micsSqlite)s --output %(coordsDir)s
+                convertCommand = %(convertCmd)s --coordinates --from gautomatch --to xmipp --input  %(micsSetFn)s --output %(coordsDir)s
                 """ % args)
 
             else:
@@ -209,7 +209,7 @@ class GautomatchPickerWizard(emwiz.EmWizard):
                 mindist.label = Min distance (A)
                 mindist.help = Use value of 0.9~1.1X particle diameter
                 autopickCommand = %(pickScript)s %%(micrograph) %(refStack)s %(coordsDir)s %(pickCmd)s --cc_cutoff %%(threshold) --min_dist %%(mindist)
-                convertCommand = %(convertCmd)s --coordinates --from gautomatch --to xmipp --input %(micsSqlite)s --output %(coordsDir)s
+                convertCommand = %(convertCmd)s --coordinates --from gautomatch --to xmipp --input %(micsSetFn)s --output %(coordsDir)s
                 """ % args)
 
         process = CoordinatesObjectView(project, micFn, coordsDir, prot,
