@@ -1,3 +1,7 @@
+3.3.0 - Streaming is reliable: batch remainders are kept, each micrograph is read once so the run always ends,
+        failed micrographs are retried on Continue and the run fails only if every micrograph failed
+      - Two micrographs no longer get the same set of coordinates
+      - The CUDA library paths are passed to Gautomatch's subprocesses
 3.1 - Add conda environment with cuda 10.1 libs
     - Remove support for v0.53
 3.0.19 - remove broken web link and update github workflow
