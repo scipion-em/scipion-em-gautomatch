@@ -160,6 +160,7 @@ class GautomatchViewer(ProtocolViewer):
 
     def _convertCoords(self, micSet, tmpDir, coordsType):
         """ Link specified coord set to tmpDir folder and convert it to .pos files"""
+        # These name the protocol's own output files on disk.
         coordTypes = {'autopick': 'coordinates.sqlite',
                       'rejected': 'coordinates_rejected.sqlite'}
         coordsFnIn = self.protocol._getPath(coordTypes[coordsType])

@@ -38,7 +38,7 @@ from gautomatch.constants import *
 from pyworkflow import SPA
 
 
-__version__ = '3.2.1'
+__version__ = '3.3.0'
 _logo = "gautomatch_logo.png"
 _references = ['Zhang']
 
@@ -104,7 +104,7 @@ class Plugin(pwem.Plugin):
         return " ".join([
             cls.getCondaActivationCmd(),
             cls.getGautomatchEnvActivation(),
-            "&& LD_LIBRARY_PATH=$CONDA_PREFIX/lib:$LD_LIBRARY_PATH &&",
+            "&& export LD_LIBRARY_PATH=\"$CONDA_PREFIX/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}\" &&",
             cls.getVar(GAUTOMATCH)
         ])
 
